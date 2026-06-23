@@ -2,12 +2,12 @@
  * Cloudflare Pages Function — /api/daily
  *
  * Obsidian の Daily ノート（その日の日報）への追記キュー。
- * CF→Mac は直接届かないため、ここに溜めて AINAS(Mac) が pull して Daily に追記する。
+ * CF→Mac は直接届かないため、ここに溜めて ローカルAI(Mac) が pull して Daily に追記する。
  *
  * POST /api/daily        Body: { date?: "YYYY-MM-DD", id?: string, title?: string, content: string }
  *   → KV `daily_append:<date>_<id>` に保存（追記待ち）
  * GET  /api/daily?action=pending   Headers: x-sync-token
- *   → 追記待ち一覧 [{ date, id, title, content }]（AINAS が Daily へ追記）
+ *   → 追記待ち一覧 [{ date, id, title, content }]（ローカルAI が Daily へ追記）
  */
 const CORS = {
   'Access-Control-Allow-Origin':  '*',
@@ -17,9 +17,9 @@ const CORS = {
 
 export async function onRequest({ request, env }) {
   if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS });
-  const kv = env.RET_MEMORY;
+  const kv = env.MEMORY;
 
-  // ── GET ?action=pending: AINAS が追記待ちを取得 ──
+  // ── GET ?action=pending: ローカルAI が追記待ちを取得 ──
   if (request.method === 'GET') {
     const url = new URL(request.url);
     if (url.searchParams.get('action') !== 'pending') return json(400, { error: 'unknown action' });

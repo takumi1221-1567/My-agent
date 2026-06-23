@@ -1,7 +1,7 @@
 #!/bin/bash
 # ═══════════════════════════════════════════════════
 # Ollama ヘルスチェック＋自動再起動スクリプト
-# cron: */5 * * * * /bin/bash ~/RET/backend/healthcheck.sh
+# cron: */5 * * * * /bin/bash ~/My agent/backend/healthcheck.sh
 # ═══════════════════════════════════════════════════
 
 LOG="/tmp/ollama_health.log"

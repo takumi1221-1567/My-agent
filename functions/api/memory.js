@@ -2,11 +2,11 @@
  * Cloudflare Pages Function — /api/memory
  *
  * GET    /api/memory  — 記憶一覧（KVから最新10件）
- * POST   /api/memory  — 記憶保存: KV + D1 + AINAS（Obsidian Memory/）の3箇所に保存
+ * POST   /api/memory  — 記憶保存: KV + D1 + ローカルAI（Obsidian Memory/）の3箇所に保存
  * DELETE /api/memory  — KV + D1 の記憶を全削除
  *
  * KV設定値:
- *   _config_ainas_url  — AINASのベースURL（例: http://100.115.21.32:8000）
+ *   _config_local-ai_url  — ローカルAIのベースURL（例: http://100.115.21.32:8000）
  *                        未設定の場合は KV + D1 のみに保存
  */
 
@@ -24,7 +24,7 @@ export async function onRequest({ request, env }) {
     return new Response(null, { status: 204, headers: CORS });
   }
 
-  const kv = env.RET_MEMORY;
+  const kv = env.MEMORY;
   if (!kv) return errRes(503, 'KVが未設定です');
 
   // ── GET: KVから記憶一覧 ────────────────────────────────
@@ -38,7 +38,7 @@ export async function onRequest({ request, env }) {
     return okRes({ memories });
   }
 
-  // ── POST: KV + D1 + AINAS に保存 ─────────────────────
+  // ── POST: KV + D1 + ローカルAI に保存 ─────────────────────
   if (request.method === 'POST') {
     let body;
     try { body = await request.json(); } catch { return errRes(400, 'Invalid JSON'); }
@@ -68,10 +68,10 @@ export async function onRequest({ request, env }) {
       } catch { /* D1 が使えなくても続行 */ }
     }
 
-    // 3) AINAS（Mac起動中）にも転送 → Obsidian Memory/ に保存
-    const ainasBase = ((await kv.get('_config_ainas_url')) || '').replace(/\/$/, '');
-    let ainasResult = null;
-    if (ainasBase) {
+    // 3) ローカルAI（Mac起動中）にも転送 → Obsidian Memory/ に保存
+    const local-aiBase = ((await kv.get('_config_local-ai_url')) || '').replace(/\/$/, '');
+    let local-aiResult = null;
+    if (local-aiBase) {
       const date     = savedAt.slice(0, 10).replace(/-/g, '');
       const slug     = keyword.slice(0, 20).replace(/[/\\:*?"<>|]/g, '_');
       const filename = `${date}_${slug}.md`;
@@ -87,19 +87,19 @@ export async function onRequest({ request, env }) {
           '- ソース: 音声入力「覚えて」コマンド',
         ].join('\n');
       try {
-        const res = await fetch(`${ainasBase}/api/memory/save`, {
+        const res = await fetch(`${local-aiBase}/api/memory/save`, {
           method:  'POST',
           headers: { 'Content-Type': 'application/json' },
           body:    JSON.stringify({ filename, content }),
           signal:  AbortSignal.timeout(5000),
         });
-        ainasResult = res.ok ? 'saved' : `AINAS error ${res.status}`;
+        local-aiResult = res.ok ? 'saved' : `ローカルAI error ${res.status}`;
       } catch (e) {
-        ainasResult = `AINAS unreachable: ${e.message}`;
+        local-aiResult = `ローカルAI unreachable: ${e.message}`;
       }
     }
 
-    return okRes({ saved: true, id, ainas: ainasResult });
+    return okRes({ saved: true, id, local-ai: local-aiResult });
   }
 
   // ── DELETE: KV + D1 全削除 ────────────────────────────

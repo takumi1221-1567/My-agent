@@ -2,12 +2,12 @@
 """
 Obsidian(D1ミラー) → Supabase 同期スクリプト
 
-RET の D1 `vault_chunks`（= Obsidian Vault のミラー）を読み出し、
+My agent の D1 `vault_chunks`（= Obsidian Vault のミラー）を読み出し、
 Supabase の public.obsidian_knowledge テーブルへ全件コピー（洗い替え）する。
-EAST 等が Obsidian の知識を Supabase 側からも参照できるようにするための補助同期。
+AI chat team in your Discord 等が Obsidian の知識を Supabase 側からも参照できるようにするための補助同期。
 
 前提:
-  - `npx wrangler` が使え、RET の D1 (my-agent-vault) にアクセスできること
+  - `npx wrangler` が使え、My agent の D1 (my-agent-vault) にアクセスできること
   - Supabase の obsidian_knowledge テーブルが作成済み（RLS有効）であること
 
 環境変数:
@@ -32,7 +32,7 @@ BATCH        = 50
 
 
 def fetch_chunks_from_d1() -> list[dict]:
-    """RET の D1 vault_chunks を wrangler 経由で取得する。"""
+    """My agent の D1 vault_chunks を wrangler 経由で取得する。"""
     out = subprocess.check_output(
         ["npx", "wrangler", "d1", "execute", "my-agent-vault", "--remote", "--json",
          "--command", "SELECT path, chunk FROM vault_chunks"],

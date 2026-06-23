@@ -20,8 +20,8 @@ jobs:
         uses: cloudflare/pages-action@v1
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: e57cdde5f4b925eb9608091648b1e9bb
-          projectName: ret                  # must match `name` in wrangler.toml
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: my-agent             # must match `name` in wrangler.toml
           directory: public                 # must match `pages_build_output_dir` in wrangler.toml
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}   # posts deployment status on PRs
           wranglerVersion: '3'

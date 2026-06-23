@@ -1,4 +1,4 @@
-# AWS セットアップ手順（RET プロジェクト）
+# AWS セットアップ手順（My agent プロジェクト）
 
 > ⚠️ **全て無料枠（Free Tier）内で構築します**
 
@@ -20,7 +20,7 @@ aws --version   # aws-cli/2.x.x が表示されればOK
 > **画面：** https://console.aws.amazon.com/iam/
 
 1. 左メニュー **「ユーザー」** → **「ユーザーを作成」**
-2. ユーザー名：`ret-admin`
+2. ユーザー名：`myagent-admin`
 3. **「AWSマネジメントコンソールへのアクセスを許可」は OFF**（チェックしない）
 4. 次へ → **「ポリシーを直接アタッチ」** を選択
 5. 以下のポリシーを検索して追加：
@@ -69,7 +69,7 @@ aws sts get-caller-identity
 1. **「予算を作成」**
 2. **「コスト予算」** を選択 → 次へ
 3. 設定：
-   - 予算名：`ret-cost-alert`
+   - 予算名：`myagent-cost-alert`
    - 予算額：`$1.00`（月額）
    - メールアドレス：`you@example.com`
 4. **「予算を作成」**
@@ -83,15 +83,15 @@ aws sts get-caller-identity
 STEP 3 の認証が完了したら、ターミナルで実行：
 
 ```bash
-cd ~/RET/backend
+cd ~/My agent/backend
 bash deploy.sh
 ```
 
 以下が自動で作成されます：
-- IAM ロール `ret-lambda-role`
-- DynamoDB テーブル `ret-memory`
-- S3 バケット `ret-faces-{アカウントID}`
-- Lambda関数 `ret-chat`、`ret-memory`
+- IAM ロール `myagent-lambda-role`
+- DynamoDB テーブル `myagent-memory`
+- S3 バケット `myagent-faces-{アカウントID}`
+- Lambda関数 `myagent-chat`、`myagent-memory`
 
 ---
 
@@ -100,19 +100,19 @@ bash deploy.sh
 > **画面：** https://console.aws.amazon.com/apigateway/
 
 1. **「APIを作成」** → **「REST API」** → **「構築」**
-2. API名：`ret-api`、エンドポイントタイプ：`リージョン` → **「APIを作成」**
+2. API名：`myagent-api`、エンドポイントタイプ：`リージョン` → **「APIを作成」**
 
 ### `/chat` エンドポイント
 3. **「リソースを作成」** → リソースパス：`chat`
 4. `chat` を選択 → **「メソッドを作成」** → `POST`
-5. 統合タイプ：**Lambda関数** → `ret-chat` を選択
+5. 統合タイプ：**Lambda関数** → `myagent-chat` を選択
 6. **「CORS を有効にする」** にチェック → 保存
 
 ### `/memory/save` エンドポイント
-7. `memory` リソース → `save` リソース → `POST` メソッド → `ret-memory`
+7. `memory` リソース → `save` リソース → `POST` メソッド → `myagent-memory`
 
 ### `/memory/get` エンドポイント
-8. `memory/get` → `GET` メソッド → `ret-memory`
+8. `memory/get` → `GET` メソッド → `myagent-memory`
 
 ### デプロイ
 9. **「APIをデプロイ」** → ステージ名：`prod` → **「デプロイ」**
@@ -125,7 +125,7 @@ bash deploy.sh
 
 ## STEP 7 ｜ フロントエンドにAPIエンドポイントを設定
 
-`~/RET/public/js/gemini.js` の `API_ENDPOINT` を更新：
+`~/My agent/public/js/gemini.js` の `API_ENDPOINT` を更新：
 
 ```js
 const API_ENDPOINT = 'https://xxxxxxxx.execute-api.ap-northeast-1.amazonaws.com/prod/chat';
@@ -138,7 +138,7 @@ const API_ENDPOINT = 'https://xxxxxxxx.execute-api.ap-northeast-1.amazonaws.com/
 ## 完了チェックリスト
 
 - [ ] STEP 1: AWS CLI インストール
-- [ ] STEP 2: IAM ユーザー `ret-admin` 作成・アクセスキー取得
+- [ ] STEP 2: IAM ユーザー `myagent-admin` 作成・アクセスキー取得
 - [ ] STEP 3: `aws configure` 完了
 - [ ] STEP 4: Budgets アラート設定（$1）
 - [ ] STEP 5: `bash deploy.sh` 実行成功
@@ -149,7 +149,7 @@ const API_ENDPOINT = 'https://xxxxxxxx.execute-api.ap-northeast-1.amazonaws.com/
 
 ## 各サービスの無料枠
 
-| サービス | 無料枠 | RETの想定使用量 |
+| サービス | 無料枠 | My agentの想定使用量 |
 |---------|--------|---------------|
 | Lambda | 月100万リクエスト、400,000GB秒 | ✅ 余裕あり |
 | DynamoDB | 25GB ストレージ、25RCU/WCU | ✅ 余裕あり |

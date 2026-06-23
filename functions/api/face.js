@@ -12,7 +12,7 @@ const CORS = {
 export async function onRequest({ request, env }) {
   if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS });
 
-  const kv       = env.RET_MEMORY;
+  const kv       = env.MEMORY;
   const faceBase = ((kv ? await kv.get('_config_face_url') : null)
     || env.FACE_URL || '').replace(/\/$/, '');
 

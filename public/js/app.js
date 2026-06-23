@@ -1,5 +1,5 @@
 /**
- * RET – main application orchestrator
+ * My agent – main application orchestrator
  *
  * State machine:
  *   idle ──20s──> wandering（歩く / 座る / 画面外へ）
@@ -194,15 +194,15 @@ function _pickButlerPhrase() {
 
 // ── 取扱説明書 ────────────────────────────────────────────
 const MANUAL_HTML = `
-<h3>🤖 RETってなに？</h3>
-<p>話しかけると、なんでも答えてくれる<strong>AIのともだち「あいなす」</strong>がいるよ！</p>
+<h3>🤖 My agentってなに？</h3>
+<p>話しかけると、なんでも答えてくれる<strong>AIのともだち「AI執事」</strong>がいるよ！</p>
 
 <h3>🎙️ 話しかけかた</h3>
 <p><strong>① 右上のまるいボタンを1回おす</strong><br>
 ボタンが赤くなったら聞いているよ。</p>
 <p><strong>② 話しかける</strong><br>
 なんでも話してOK！終わると自動で送信されるよ。</p>
-<p><strong>③ あいなすが答えてくれる</strong><br>
+<p><strong>③ AI執事が答えてくれる</strong><br>
 声と文字で答えてくれるよ。止めたいときはもう一度ボタンをおしてね。</p>
 
 <h3>✨ まほうのことば</h3>
@@ -210,7 +210,7 @@ const MANUAL_HTML = `
 <strong>「覚えて」</strong> と言う → 大事なことを覚えてもらえるよ</p>
 
 <h3>💤 ほっておくと…</h3>
-<p>しばらく操作しないと、あいなすが動きだすよ。話しかけるとすぐ戻ってくるよ！</p>
+<p>しばらく操作しないと、AI執事が動きだすよ。話しかけるとすぐ戻ってくるよ！</p>
 
 <h3>🆘 こまったとき</h3>
 <p><strong>「もう一度試して」と出た</strong> → ボタンをもう一回おしてね<br>
@@ -231,7 +231,7 @@ class RETApp {
     this._butlerTimer  = null;
     this._msgTimer     = null;
     this._outingMode   = false;
-    this._ainasAbort   = null;
+    this._local-aiAbort   = null;
 
     // 復帰シーケンス（帰宅/施錠→帰宅）再生中ガード。
     // 音声認識は非継続モードのため result 直後に必ず onend が発火する。
@@ -346,11 +346,11 @@ class RETApp {
   // 固定パスワード（FIXED_PW_HASH）で照合する。localStorage には名前のみ保存（利便用）。
   // パスワードの平文もハッシュも保存しない（コード内の固定ハッシュのみと突き合わせる）。
   _loadProfile() {
-    try { return JSON.parse(localStorage.getItem('ainas_profile') || 'null'); }
+    try { return JSON.parse(localStorage.getItem('local-ai_profile') || 'null'); }
     catch { return null; }
   }
   _saveProfile(p) {
-    try { localStorage.setItem('ainas_profile', JSON.stringify(p)); } catch { /* ignore */ }
+    try { localStorage.setItem('local-ai_profile', JSON.stringify(p)); } catch { /* ignore */ }
   }
   async _hashPassword(pw) {
     const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
@@ -463,13 +463,13 @@ class RETApp {
         this._loadMemories();
         if (userName) {
           // 初回のみ「はじめまして」。2回目以降は「おかえりなさいませ」。
-          const firstEver = !localStorage.getItem('ainas_greeted');
+          const firstEver = !localStorage.getItem('local-ai_greeted');
           const greeting = firstEver
-            ? `はじめまして、${userName}様。私はあいなすと申します。何なりとお申し付けください。`
+            ? `はじめまして、${userName}様。私はAI執事と申します。何なりとお申し付けください。`
             : `おかえりなさいませ、${userName}様。`;
-          try { localStorage.setItem('ainas_greeted', '1'); } catch { /* ignore */ }
+          try { localStorage.setItem('local-ai_greeted', '1'); } catch { /* ignore */ }
           setTimeout(() => {
-            this._showMessage(`あいなす: ${greeting}`);
+            this._showMessage(`AI執事: ${greeting}`);
             this.voice.speak(greeting, { onEnd: () => this._announceSyncStatus() });
           }, 500);
           this._setStatus(`${userName}様、ようこそ`);
@@ -628,7 +628,7 @@ class RETApp {
 
     if (this._outingMode) {
       if (_match(RETURN_TRIGGERS)) {
-        this._cancelAinas();
+        this._cancelLocalAI();
         this._startReturn();
       } else {
         this.busy = false;
@@ -670,19 +670,19 @@ class RETApp {
     }
 
     if (_match(ILLNESS_TRIGGERS)) {
-      this._cancelAinas();
+      this._cancelLocalAI();
       this._startMonshin(text);
       return;
     }
 
     if (_match(TRPG_START_TRIGGERS)) {
-      this._cancelAinas();
+      this._cancelLocalAI();
       this._startTrpg(text);
       return;
     }
 
     if (_match(SEARCH_TRIGGERS)) {
-      this._cancelAinas();
+      this._cancelLocalAI();
       this._startSearch();
       return;
     }
@@ -699,31 +699,31 @@ class RETApp {
 
     if (_match(OUTING_TRIGGERS)) {
       this._showMessage(`🚗 外出シーケンス開始`);
-      this._cancelAinas();
+      this._cancelLocalAI();
       this._startOuting();
       return;
     }
 
     if (_match(INSTALL_TRIGGERS)) {
-      this._cancelAinas();
+      this._cancelLocalAI();
       this._requestSync();
       return;
     }
 
     if (_match(STATUS_TRIGGERS)) {
-      this._cancelAinas();
+      this._cancelLocalAI();
       this._showSyncStatus();
       return;
     }
 
     if (_match(DRAW_TRIGGERS)) {
-      this._cancelAinas();
+      this._cancelLocalAI();
       this._startDraw();
       return;
     }
 
     if (_match(GO_TRIGGERS)) {
-      this._cancelAinas();
+      this._cancelLocalAI();
       this._startGoPrompt();
       return;
     }
@@ -740,14 +740,14 @@ class RETApp {
     try {
       let reply;
       try {
-        const data = await this._ainasAsk(text);            // 候補提示対応の問い合わせ
+        const data = await this._local-aiAsk(text);            // 候補提示対応の問い合わせ
         if (data.candidates) { this._startPick(data.candidates); return; }
         reply = data.reply;
       } catch (e) {
         // 外出/他モードへの遷移によるキャンセルは静かに終了
         if (this._outingMode || this._goMode || this._searchMode || this._trpgMode || this._drawMode || this._pickMode || this._monshinMode) return;
         // タイムアウト/通信失敗で「考え中」のまま固まらないよう、通知して復帰
-        this._showMessage('あいなす: 申し訳ございません、うまく応答できませんでした。もう一度お試しください。');
+        this._showMessage('AI執事: 申し訳ございません、うまく応答できませんでした。もう一度お試しください。');
         this.busy = false;
         this.scene.setState(STATE.IDLE);
         this._setStatus('タップして話しかける');
@@ -759,9 +759,9 @@ class RETApp {
       // 非同期待機中に外出モードへ遷移していた場合は返答を捨てる
       if (this._outingMode) return;
 
-      console.log('[あいなす]', reply);
+      console.log('[AI執事]', reply);
 
-      this._showMessage(`あいなす: ${reply}`);
+      this._showMessage(`AI執事: ${reply}`);
       this.scene.setState(STATE.TALKING);
       this._setStatus('話してる...');
       this._micState('idle');
@@ -823,7 +823,7 @@ class RETApp {
         return;
       }
       const phrase = OUTING_SMALLTALK[Math.floor(Math.random() * OUTING_SMALLTALK.length)];
-      this._showMessage(`あいなす: ${phrase}`);
+      this._showMessage(`AI執事: ${phrase}`);
       this.voice.speak(phrase, {
         onEnd: () => { if (this._outingMode) this._startOutingSmalltalk(); },
       });
@@ -853,13 +853,13 @@ class RETApp {
         this._micState('idle');
         this._resetWanderTimer();
         const phrase = 'おかえりなさいませ。お疲れ様でございました。';
-        this._showMessage(`あいなす: ${phrase}`);
+        this._showMessage(`AI執事: ${phrase}`);
         this.voice.speak(phrase);
       }, /* loopLast */ false, /* onLoopStart */ null, /* withSound */ true);
     };
 
     const phrase = '帰りますね。';
-    this._showMessage(`あいなす: ${phrase}`);
+    this._showMessage(`AI執事: ${phrase}`);
     let started = false;
     const startOnce = () => { if (!started) { started = true; playReturn(); } };
     this.voice.speak(phrase, { onEnd: startOnce });
@@ -880,7 +880,7 @@ class RETApp {
       const hh = String(d.getHours()).padStart(2, '0');
       const mm = String(d.getMinutes()).padStart(2, '0');
       const phrase = `最新の同期は${d.getMonth() + 1}月${d.getDate()}日 ${hh}時${mm}分です。`;
-      this._showMessage(`あいなす: ${phrase}`);
+      this._showMessage(`AI執事: ${phrase}`);
       if (!this.voice?.isSpeaking && !this.voice?.isListening && !this.busy) {
         this.voice?.speak(phrase);
       }
@@ -904,7 +904,7 @@ class RETApp {
       return;
     }
     const phrase = `本日以降のご予定をお知らせいたします。${value}`;
-    this._showMessage(`あいなす: ${phrase}`);
+    this._showMessage(`AI執事: ${phrase}`);
     this.scene?.setState(STATE.TALKING);
     this.voice?.speak(phrase, {
       onEnd: () => { this.scene?.setState(STATE.IDLE); this._resetWanderTimer(); },
@@ -924,7 +924,7 @@ class RETApp {
     this._micState('idle');
     this._setStatus('一緒に行きますか？（「はい」か「いいえ」）');
     const phrase = '一緒にいかがですか？';
-    this._showMessage(`あいなす: ${phrase}`);
+    this._showMessage(`AI執事: ${phrase}`);
     this.scene.setState(STATE.TALKING);
     this.voice.speak(phrase, {
       onEnd: () => { if (this._goMode && this._goPhase === 'prompt') this.scene.setState(STATE.IDLE); },
@@ -948,7 +948,7 @@ class RETApp {
         this._goReplyToUser(text);
       }
     } else if (this._goPhase === 'backroom') {
-      if (_match(GO_HOME_TRIGGERS)) { this._cancelAinas(); this._startGoReturn(); }
+      if (_match(GO_HOME_TRIGGERS)) { this._cancelLocalAI(); this._startGoReturn(); }
       else { this.busy = false; this._micState('idle'); this._setStatus('「帰ろう」で帰宅'); }
     }
   }
@@ -1008,7 +1008,7 @@ class RETApp {
     const phrase = ok
       ? 'インストールを開始しました。1〜2分ほどで最新の記憶に同期されます。'
       : '申し訳ございません、同期の依頼に失敗しました。';
-    this._showMessage(`あいなす: ${phrase}`);
+    this._showMessage(`AI執事: ${phrase}`);
     this.scene.setState(STATE.TALKING);
     this.voice.speak(phrase, {
       onEnd: () => {
@@ -1044,7 +1044,7 @@ class RETApp {
     } else {
       phrase = '申し訳ございません、記憶がまだ同期されていないようです。';
     }
-    this._showMessage(`あいなす: ${phrase}`);
+    this._showMessage(`AI執事: ${phrase}`);
     this.scene.setState(STATE.TALKING);
     this.voice.speak(phrase, {
       onEnd: () => {
@@ -1058,16 +1058,16 @@ class RETApp {
   }
 
   // ── 候補提示モード（複数トピックがヒット時）→ 選択 → 絞って説明 ──
-  async _ainasAsk(text) {
-    this._cancelAinas();
-    this._ainasAbort = new AbortController();
-    const timer = setTimeout(() => this._cancelAinas(), 30000);
+  async _local-aiAsk(text) {
+    this._cancelLocalAI();
+    this._local-aiAbort = new AbortController();
+    const timer = setTimeout(() => this._cancelLocalAI(), 30000);
     try {
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: text, disambiguate: true }),
-        signal: this._ainasAbort.signal,
+        signal: this._local-aiAbort.signal,
       });
       if (!res.ok) throw new Error(`Chat API ${res.status}`);
       const data = await res.json();
@@ -1076,7 +1076,7 @@ class RETApp {
       return { reply: data.reply };
     } finally {
       clearTimeout(timer);
-      this._ainasAbort = null;
+      this._local-aiAbort = null;
     }
   }
 
@@ -1087,7 +1087,7 @@ class RETApp {
     this.voice?.stopListening();
     this._micState('idle');
     const list = this._pickCandidates.map((t, i) => `${i + 1}. ${t}`).join('\n');
-    this._showMessage(`あいなす: いくつか見つかりました。どれをお知りになりたいですか？\n${list}\n（番号かキーワードでどうぞ）`);
+    this._showMessage(`AI執事: いくつか見つかりました。どれをお知りになりたいですか？\n${list}\n（番号かキーワードでどうぞ）`);
     this.scene.setState(STATE.TALKING);
     const spoken = `いくつか見つかりました。${this._pickCandidates.map((t, i) => `${i + 1}番、${t}`).join('。')}。どれでしょうか？`;
     this.voice.speak(spoken, {
@@ -1118,7 +1118,7 @@ class RETApp {
     } else {
       this.busy = false; this._micState('idle'); this._setStatus('番号かキーワードでお選びください');
       const p = '恐れ入ります、番号かキーワードでお選びください。';
-      this._showMessage(`あいなす: ${p}`); this.voice.speak(p);
+      this._showMessage(`AI執事: ${p}`); this.voice.speak(p);
     }
   }
 
@@ -1129,12 +1129,12 @@ class RETApp {
     this.scene.setState(STATE.THINKING);
     this._setStatus('考えてる...');
     let reply = '';
-    try { reply = await this._ainasChat(`${title}について教えて`); }   // 具体化→明確な勝者→直接回答
+    try { reply = await this._local-aiChat(`${title}について教えて`); }   // 具体化→明確な勝者→直接回答
     catch (e) {
       this.busy = false; this.scene.setState(STATE.IDLE); this._setStatus('タップして話しかける');
       this._micState('idle'); this._resetWanderTimer(); return;
     }
-    this._showMessage(`あいなす: ${reply}`);
+    this._showMessage(`AI執事: ${reply}`);
     this.scene.setState(STATE.TALKING); this._micState('idle');
     this.voice.speak(reply, {
       onEnd: () => { this.busy = false; this.scene.setState(STATE.IDLE); this._setStatus('タップして話しかける'); this._resetWanderTimer(); },
@@ -1168,7 +1168,7 @@ class RETApp {
     this._setStatus('考えています...');
     let reply = '';
     try {
-      reply = await this._ainasChat(text, { mode: 'monshin', history: this._monshinHistory.slice(-16) });
+      reply = await this._local-aiChat(text, { mode: 'monshin', history: this._monshinHistory.slice(-16) });
     } catch (e) {
       if (!this._monshinMode) return;
       reply = '申し訳ございません、もう一度伺えますか。';
@@ -1176,7 +1176,7 @@ class RETApp {
     if (!this._monshinMode) return;
     this._monshinHistory.push({ role: 'user', parts: [{ text }] });
     this._monshinHistory.push({ role: 'model', parts: [{ text: reply }] });
-    this._showMessage(`あいなす: ${reply}`);
+    this._showMessage(`AI執事: ${reply}`);
     this.voice.speak(reply, {
       onEnd: () => {
         if (!this._monshinMode) return;
@@ -1195,7 +1195,7 @@ class RETApp {
     this._micState('processing');
     this._setStatus('問診終了');
     const phrase = '無理しないように。';
-    this._showMessage(`あいなす: ${phrase}`);
+    this._showMessage(`AI執事: ${phrase}`);
     this.scene.playSequence([DRAW_TALK], () => {
       this.scene.setState(STATE.IDLE);
       this._setStatus('タップして話しかける');
@@ -1219,7 +1219,7 @@ class RETApp {
     this._drawDoneAt = Date.now() + Math.floor(Math.random() * DRAW_MAX_MS);
     this._setStatus('絵を描いています…（「もうできた？」と聞いてください）');
     const phrase = 'かしこまりました。少々お待ちを。';
-    this._showMessage(`あいなす: ${phrase}`);
+    this._showMessage(`AI執事: ${phrase}`);
     this.scene.playSequence([DRAW_VIDEO], null, /* loopLast */ true, null, /* withSound */ true);
     this.voice.speak(phrase);
   }
@@ -1243,12 +1243,12 @@ class RETApp {
     try { mutter = await this._drawMutter(); } catch { mutter = ''; }
     if (!this._drawMode) return;  // 途中で完成/終了していたら破棄
     const phrase = 'まあまあ。そう焦らないで。';
-    this._showMessage(`あいなす: ${phrase}`);
+    this._showMessage(`AI執事: ${phrase}`);
     this.voice.speak(phrase, {
       onEnd: () => {
         if (!this._drawMode) return;
         if (mutter) {
-          this._showMessage(`あいなす: ${mutter}`);
+          this._showMessage(`AI執事: ${mutter}`);
           this.voice.speak(mutter, { onEnd: () => this._drawIdleReady() });
         } else {
           this._drawIdleReady();
@@ -1270,7 +1270,7 @@ class RETApp {
     const prompt = seed
       ? `絵を描きながらの独り言として、次のメモに少し触れて100文字以内で一言。挨拶・かぎ括弧・絵文字は不要。\n\nメモ: ${seed}`
       : `絵を描きながらの独り言を100文字以内で一言。挨拶・かぎ括弧・絵文字は不要。`;
-    const reply = await this._ainasChat(prompt);
+    const reply = await this._local-aiChat(prompt);
     return (reply || '').replace(/[「」]/g, '').slice(0, 110);
   }
 
@@ -1282,7 +1282,7 @@ class RETApp {
     this._micState('processing');
     this._setStatus('完成しました');
     const phrase = 'できましたよ。こういう絵ができました。';
-    this._showMessage(`あいなす: ${phrase}`);
+    this._showMessage(`AI執事: ${phrase}`);
     this.scene.playSequence([DRAW_TALK], () => {
       this.scene.setState(STATE.IDLE);
       this._setStatus('タップして話しかける');
@@ -1321,7 +1321,7 @@ class RETApp {
       this._micState('idle');
       this._resetWanderTimer();
       const phrase = 'おかえりなさいませ。';
-      this._showMessage(`あいなす: ${phrase}`);
+      this._showMessage(`AI執事: ${phrase}`);
       this.voice.speak(phrase);
     }, /* loopLast */ false, /* onLoopStart */ null, /* withSound */ true);
   }
@@ -1340,7 +1340,7 @@ class RETApp {
       // 生成中にモード/フェーズが変わった、または聞き取り中になったら破棄
       if (!this._goMode || this._goPhase !== 'travel' || this.voice.isListening) return;
       if (!phrase) { this._startGoIdleTalk(); return; }
-      this._showMessage(`あいなす: ${phrase}`);
+      this._showMessage(`AI執事: ${phrase}`);
       this.voice.speak(phrase, {
         onEnd: () => { if (this._goMode && this._goPhase === 'travel') this._startGoIdleTalk(); },
       });
@@ -1363,7 +1363,7 @@ class RETApp {
         `挨拶・前置き・絵文字・かぎ括弧は不要です。\n\nメモ: ${seed}`
       : `Vaultのナレッジから話題を一つ選び、${tone}、100文字以内の短い独り言を一言だけ言ってください。` +
         `挨拶・前置き・絵文字・かぎ括弧は不要です。`;
-    const reply = await this._ainasChat(prompt);
+    const reply = await this._local-aiChat(prompt);
     return (reply || '').replace(/[「」]/g, '').slice(0, 110);
   }
 
@@ -1374,11 +1374,11 @@ class RETApp {
     this._micState('processing');
     this._setStatus('考えています...');
     let reply = '';
-    try { reply = await this._ainasChat(text); } catch { reply = ''; }
+    try { reply = await this._local-aiChat(text); } catch { reply = ''; }
     // 応答待ちの間にモード/フェーズが変わっていたら破棄
     if (!this._goMode || this._goPhase !== 'travel') return;
     if (!reply) reply = 'さようでございますか。';
-    this._showMessage(`あいなす: ${reply}`);
+    this._showMessage(`AI執事: ${reply}`);
     this.voice.speak(reply, {
       onEnd: () => {
         if (this._goMode && this._goPhase === 'travel') {
@@ -1397,10 +1397,10 @@ class RETApp {
   // 検索トークンを取得（初回のみ入力させ localStorage に保存）。公開JSには値を持たない。
   _getSearchToken() {
     let t = '';
-    try { t = localStorage.getItem('ret_search_token') || ''; } catch { /* ignore */ }
+    try { t = localStorage.getItem('search_token') || ''; } catch { /* ignore */ }
     if (!t) {
       t = (window.prompt('検索トークン（暗証番号）を設定してください（初回のみ・サーバー設定値と同じもの）') || '').trim();
-      if (t) { try { localStorage.setItem('ret_search_token', t); } catch { /* ignore */ } }
+      if (t) { try { localStorage.setItem('search_token', t); } catch { /* ignore */ } }
     }
     return t;
   }
@@ -1443,7 +1443,7 @@ class RETApp {
     this._micState('idle');
     this._setStatus('パスワードをどうぞ（タップして発声）');
     const phrase = '検索を始めます。パスワードをどうぞ。';
-    this._showMessage(`あいなす: ${phrase}`);
+    this._showMessage(`AI執事: ${phrase}`);
     this.scene.setState(STATE.TALKING);
     this.voice.speak(phrase, {
       onEnd: () => { if (this._searchMode && this._searchPhase === 'await_pw') this.scene.setState(STATE.IDLE); },
@@ -1509,7 +1509,7 @@ class RETApp {
     this._micState('idle');
     this._setStatus('何をお調べしますか？（タップして発声 /「もういいよ」で終了）');
     const phrase = '何をお調べしますか？';
-    this._showMessage(`あいなす: ${phrase}`);
+    this._showMessage(`AI執事: ${phrase}`);
     this.voice.speak(phrase);
   }
 
@@ -1542,7 +1542,7 @@ class RETApp {
 
     this._searchLast = { q: query, summary };
     this._searchPhase = 'save_confirm';
-    this._showMessage(`あいなす: ${summary}`);
+    this._showMessage(`AI執事: ${summary}`);
     this.voice.speak(summary, {
       onEnd: () => {
         if (!this._searchMode || this._searchPhase !== 'save_confirm') return;
@@ -1550,7 +1550,7 @@ class RETApp {
         this._micState('idle');
         this._setStatus('保存しますか？（「はい」か「いいえ」）');
         const ask = '保存しますか？';
-        this._showMessage(`あいなす: ${ask}`);
+        this._showMessage(`AI執事: ${ask}`);
         this.voice.speak(ask);
       },
     });
@@ -1576,7 +1576,7 @@ class RETApp {
       });
     } catch { /* 保存失敗でも続行 */ }
     const phrase = '保存しました。';
-    this._showMessage(`あいなす: ${phrase}`);
+    this._showMessage(`AI執事: ${phrase}`);
     this.voice.speak(phrase, { onEnd: () => this._searchAskContinue() });
   }
 
@@ -1588,7 +1588,7 @@ class RETApp {
     this._micState('idle');
     this._setStatus('検索を続けますか？（「はい」/「もういいよ」で終了）');
     const phrase = '検索を続けますか？';
-    this._showMessage(`あいなす: ${phrase}`);
+    this._showMessage(`AI執事: ${phrase}`);
     this.voice.speak(phrase);
   }
 
@@ -1621,7 +1621,7 @@ class RETApp {
         return;
       }
       const line = COLONEL_LINES[Math.floor(Math.random() * COLONEL_LINES.length)];
-      this._showMessage(`あいなす: ${line}`);
+      this._showMessage(`AI執事: ${line}`);
       this.voice.speak(line, {
         rate:  1.8,   // 倍速
         onEnd: () => { if (this._searchMode && this._searchPhase === 'fail') this._startSearchFailTalk(); },
@@ -1653,7 +1653,7 @@ class RETApp {
       this._micState('idle');
       this._resetWanderTimer();
       const phrase = '検索を終了しました。';
-      this._showMessage(`あいなす: ${phrase}`);
+      this._showMessage(`AI執事: ${phrase}`);
       this.voice.speak(phrase);
     }, /* loopLast */ false, /* onLoopStart */ null, /* withSound */ true);
   }
@@ -1691,7 +1691,7 @@ class RETApp {
 
     let reply = '';
     try {
-      reply = await this._ainasChat(text, { mode: 'trpg', history: this._trpgHistory.slice(-16) });
+      reply = await this._local-aiChat(text, { mode: 'trpg', history: this._trpgHistory.slice(-16) });
     } catch { reply = ''; }
     if (!this._trpgMode) return;   // 途中で終了されていたら破棄
     if (!reply) reply = '（GMは沈黙している…）もう一度お試しください。';
@@ -1700,7 +1700,7 @@ class RETApp {
     this._trpgHistory.push({ role: 'model', parts: [{ text: reply }] });
     if (this._trpgHistory.length > 24) this._trpgHistory.splice(0, this._trpgHistory.length - 24);
 
-    this._showMessage(`あいなす(GM): ${reply}`);
+    this._showMessage(`AI執事(GM): ${reply}`);
     this._micState('idle');
     this.voice.speak(reply, {
       onEnd: () => {
@@ -1726,7 +1726,7 @@ class RETApp {
         const prompt =
           `次のTRPGセッションのログを、日報として日本語で簡潔にまとめてください（200字程度）。` +
           `起きた出来事・登場NPC・結末を中心に。前置き不要。\n\n${log.join('\n')}`;
-        summary = await this._ainasChat(prompt, { mode: 'conversation' });
+        summary = await this._local-aiChat(prompt, { mode: 'conversation' });
       } catch { summary = ''; }
     }
     const date = new Date().toISOString().slice(0, 10);
@@ -1752,21 +1752,21 @@ class RETApp {
     this._setStatus('タップして話しかける');
     this._resetWanderTimer();
     const phrase = 'セッションを終了します。本日の日報に記録しました。';
-    this._showMessage(`あいなす: ${phrase}`);
+    this._showMessage(`AI執事: ${phrase}`);
     this.voice.speak(phrase);
   }
 
-  // ── AINAS RAG チャット ────────────────────────────────
+  // ── ローカルAI RAG チャット ────────────────────────────────
 
-  _cancelAinas() {
-    if (this._ainasAbort) { this._ainasAbort.abort(); this._ainasAbort = null; }
+  _cancelLocalAI() {
+    if (this._local-aiAbort) { this._local-aiAbort.abort(); this._local-aiAbort = null; }
   }
 
-  async _ainasChat(text, opts = {}) {
-    this._cancelAinas();
-    this._ainasAbort = new AbortController();
+  async _local-aiChat(text, opts = {}) {
+    this._cancelLocalAI();
+    this._local-aiAbort = new AbortController();
     // CF /api/chat（Gemini flash-lite主役・503時は別モデルへリトライ）。余裕を見て30s。
-    const timer = setTimeout(() => this._cancelAinas(), 30000);
+    const timer = setTimeout(() => this._cancelLocalAI(), 30000);
     try {
       const body = { message: text };
       if (opts.mode) body.mode = opts.mode;            // 明示モード（TRPG継続など）
@@ -1775,7 +1775,7 @@ class RETApp {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify(body),
-        signal:  this._ainasAbort.signal,
+        signal:  this._local-aiAbort.signal,
       });
       if (!res.ok) throw new Error(`Chat API ${res.status}`);
       const { reply } = await res.json();
@@ -1783,7 +1783,7 @@ class RETApp {
       return reply;
     } finally {
       clearTimeout(timer);
-      this._ainasAbort = null;
+      this._local-aiAbort = null;
     }
   }
 
@@ -1798,7 +1798,7 @@ class RETApp {
     const context = '';
 
     try {
-      // CF /api/memory 経由で保存 → KV + D1 + AINAS(起動中のみ) の3箇所に保存される
+      // CF /api/memory 経由で保存 → KV + D1 + ローカルAI(起動中のみ) の3箇所に保存される
       await fetch('/api/memory', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1807,7 +1807,7 @@ class RETApp {
       await this._loadMemories();
 
       const reply = 'かしこまりました。覚えておきます。';
-      this._showMessage(`あいなす: ${reply}`);
+      this._showMessage(`AI執事: ${reply}`);
       this.scene.setState(STATE.TALKING);
       this._setStatus('話してる...');
       this._micState('idle');
@@ -1862,7 +1862,7 @@ class RETApp {
     if (!idleNow()) { this._resetButlerTimer(); return; }
 
     if (!phrase) phrase = _pickButlerPhrase();   // フォールバック（固定フレーズ）
-    this._showMessage(`あいなす: ${phrase}`);
+    this._showMessage(`AI執事: ${phrase}`);
     this.scene?.setState(STATE.BORED);           // F-3: アイドリング動画と同期再生
     this.voice?.speak(phrase, {
       onEnd: () => {

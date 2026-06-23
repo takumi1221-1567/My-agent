@@ -1,7 +1,7 @@
 /**
  * Cloudflare Pages Function — /api/calendar
  *
- * GAS（AINAS_Calendar）→ KV `calendar_today` 保存 → AINAS起動時/チャットで参照。
+ * GAS（ローカルAI_Calendar）→ KV `calendar_today` 保存 → ローカルAI起動時/チャットで参照。
  * Mac OFF でも動く（KVはクラウド）。
  *
  * POST /api/calendar   Headers: Authorization: Bearer <CF_SYNC_TOKEN>
@@ -20,7 +20,7 @@ const KEY = 'calendar_today';
 export async function onRequest({ request, env }) {
   if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS });
 
-  const kv = env.RET_MEMORY;
+  const kv = env.MEMORY;
   if (!kv) return json(503, { error: 'KVが未設定です' });
 
   // ── GET: 現在のカレンダーテキストを返す ──

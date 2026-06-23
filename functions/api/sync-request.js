@@ -1,5 +1,5 @@
 /**
- * /api/sync-request — RETの「インストール」コマンドで同期リクエストのフラグを立てる。
+ * /api/sync-request — My agentの「インストール」コマンドで同期リクエストのフラグを立てる。
  *   POST → KV `sync_request_ts` に現在時刻(ms)をセット（1回1書き込み）
  *   GET  → { ts } を返す（Mac側の見張り役が読み取り、新しければ再同期を実行）
  */
@@ -13,7 +13,7 @@ const json = (s, o) => new Response(JSON.stringify(o),
 
 export async function onRequest({ request, env }) {
   if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS });
-  const kv = env.RET_MEMORY;
+  const kv = env.MEMORY;
   if (!kv) return json(503, { error: 'KV unavailable' });
 
   if (request.method === 'POST') {

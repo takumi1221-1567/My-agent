@@ -1,6 +1,6 @@
-# RET — 操作説明書（Operation Guide）
+# My agent — 操作説明書（Operation Guide）
 
-> AI執事「あいなす」の使い方ガイド。スマホ（PWA）でそのまま使えます。
+> AI執事「AI執事」の使い方ガイド。スマホ（PWA）でそのまま使えます。
 > 本番URL: https://your-project.pages.dev
 
 ---
@@ -22,7 +22,7 @@
 
 1. **右上のマイクボタンを1回押す**（赤くなったら聞き取り中）。
 2. **話しかける**（話し終わると自動送信）。
-3. あいなすが**声と文字**で答える。止めたい時はもう一度マイクを押す。
+3. AI執事が**声と文字**で答える。止めたい時はもう一度マイクを押す。
 
 ---
 
@@ -30,7 +30,7 @@
 
 | 言葉（例） | 動作 |
 |---|---|
-| （自由な質問・雑談） | あいなすが回答（Obsidian知識・記憶を参照） |
+| （自由な質問・雑談） | AI執事が回答（Obsidian知識・記憶を参照） |
 | 「〇〇を**覚えて**」 | 確定事実として記憶（例:「私の出身は青森と覚えて」） |
 | 「**クリア**」 | 取扱説明（マニュアル）を表示 |
 | 「**外出**」 | 外出ドライブ演出を開始 |
@@ -91,11 +91,11 @@
 
 ---
 
-## 9. Discordで使う（EAST会議）
+## 9. Discordで使う（AI chat team in your Discord会議）
 
 - ボットがいるDiscordチャンネルで**普通に発言**するだけ。
-- 専門の異なる複数AIエージェント＋あいなすが、関係する時に自動で返答（最大3ラウンド）。
-- 「**AI活用**」「ニュース」「自動化」などのキーワードを含むと、あいなすが要約で答えます。
+- 専門の異なる複数AIエージェント＋AI執事が、関係する時に自動で返答（最大3ラウンド）。
+- 「**AI活用**」「ニュース」「自動化」などのキーワードを含むと、AI執事が要約で答えます。
 - あなたが招待した友人の発言にも反応します。
 
 ---
@@ -117,23 +117,23 @@
 
 ### 本番デプロイ（Cloudflare Pages）
 ```
-cd /path/to/RET
-npx wrangler pages deploy public --project-name=ret --commit-dirty=true
+cd /path/to/My agent
+npx wrangler pages deploy public --project-name=my-agent --commit-dirty=true
 ```
 - JS/CSSを変更したら `index.html` の参照クエリ `?v=N` を更新（キャッシュバスト）。
 
-### ローカルAI（AINAS / Mac・任意）
+### ローカルAI（ローカルAI / Mac・任意）
 - FastAPI（uvicorn :8000）。Obsidian Vault（iCloud）を読み書き・D1へ同期・KVから逆同期。
 - 起動/再起動（launchd）:
   ```
-  launchctl kickstart -k gui/$(id -u)/com.ainas.server
+  launchctl kickstart -k gui/$(id -u)/com.local-ai.server
   ```
 - 環境変数 `CF_SYNC_URL` / `CF_SYNC_TOKEN` が必要（Obsidian↔クラウド同期用）。
 
-### Discordボット（EAST・任意）
-- `discord_bot.py`（launchd `com.east.discord-bot`）。RETの `/api/chat` を会議参加者として呼ぶ。
+### Discordボット（AI chat team in your Discord・任意）
+- `discord_bot.py`（launchd `com.aichatteam.discord-bot`）。My agentの `/api/chat` を会議参加者として呼ぶ。
   ```
-  launchctl kickstart -k gui/$(id -u)/com.east.discord-bot
+  launchctl kickstart -k gui/$(id -u)/com.aichatteam.discord-bot
   ```
 
 ### Mac ON/OFF と機能

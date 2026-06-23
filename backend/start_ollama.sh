@@ -1,10 +1,10 @@
 #!/bin/bash
-# RET — Ollamaローカルサーバー起動スクリプト
+# My agent — Ollamaローカルサーバー起動スクリプト
 # このスクリプトを起動したままにしておくとAIが使えます
 
 MODEL="${1:-llama3}"
 
-echo "=== RET ローカルAI起動 ==="
+echo "=== My agent ローカルAI起動 ==="
 
 # Ollamaサービス起動
 echo "▶ Ollama起動中..."

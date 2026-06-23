@@ -1,15 +1,15 @@
 #!/bin/bash
-# RET バックエンド デプロイスクリプト
+# My agent バックエンド デプロイスクリプト
 # 事前に: aws configure でアクセスキーを設定してください
 
 set -e
 
 REGION="ap-northeast-1"
 ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-ROLE_NAME="ret-lambda-role"
+ROLE_NAME="myagent-lambda-role"
 ROLE_ARN="arn:aws:iam::${ACCOUNT_ID}:role/${ROLE_NAME}"
 
-echo "=== RET AWS セットアップ ==="
+echo "=== My agent AWS セットアップ ==="
 echo "アカウントID: ${ACCOUNT_ID}"
 echo "リージョン: ${REGION}"
 
@@ -50,7 +50,7 @@ sleep 10  # ロール伝播待ち
 echo ""
 echo "▶ DynamoDB テーブル作成中..."
 aws dynamodb create-table \
-  --table-name "ret-memory" \
+  --table-name "myagent-memory" \
   --attribute-definitions \
     AttributeName=user_id,AttributeType=S \
     AttributeName=timestamp,AttributeType=S \
@@ -59,12 +59,12 @@ aws dynamodb create-table \
     AttributeName=timestamp,KeyType=RANGE \
   --billing-mode PAY_PER_REQUEST \
   --region "${REGION}" 2>/dev/null || echo "  （テーブル既存）"
-echo "  ✅ DynamoDB: ret-memory"
+echo "  ✅ DynamoDB: myagent-memory"
 
 # ── 3. S3 バケット作成 ───────────────────────────────────
 echo ""
 echo "▶ S3 バケット作成中..."
-BUCKET_NAME="ret-faces-${ACCOUNT_ID}"
+BUCKET_NAME="myagent-faces-${ACCOUNT_ID}"
 aws s3api create-bucket \
   --bucket "${BUCKET_NAME}" \
   --region "${REGION}" \
@@ -85,7 +85,7 @@ cd "$(dirname "$0")/lambda"
 # chat.py
 zip -q chat.zip chat.py
 aws lambda create-function \
-  --function-name "ret-chat" \
+  --function-name "myagent-chat" \
   --runtime "python3.12" \
   --role "${ROLE_ARN}" \
   --handler "chat.lambda_handler" \
@@ -94,27 +94,27 @@ aws lambda create-function \
   --environment "Variables={OLLAMA_URL=http://localhost:11434,OLLAMA_MODEL=llama3}" \
   --region "${REGION}" 2>/dev/null || \
 aws lambda update-function-code \
-  --function-name "ret-chat" \
+  --function-name "myagent-chat" \
   --zip-file "fileb://chat.zip" \
   --region "${REGION}"
-echo "  ✅ Lambda: ret-chat"
+echo "  ✅ Lambda: myagent-chat"
 
 # memory.py
 zip -q memory.zip memory.py
 aws lambda create-function \
-  --function-name "ret-memory" \
+  --function-name "myagent-memory" \
   --runtime "python3.12" \
   --role "${ROLE_ARN}" \
   --handler "memory.lambda_handler" \
   --zip-file "fileb://memory.zip" \
   --timeout 15 \
-  --environment "Variables={DYNAMODB_TABLE=ret-memory}" \
+  --environment "Variables={DYNAMODB_TABLE=myagent-memory}" \
   --region "${REGION}" 2>/dev/null || \
 aws lambda update-function-code \
-  --function-name "ret-memory" \
+  --function-name "myagent-memory" \
   --zip-file "fileb://memory.zip" \
   --region "${REGION}"
-echo "  ✅ Lambda: ret-memory"
+echo "  ✅ Lambda: myagent-memory"
 
 rm -f chat.zip memory.zip
 cd -

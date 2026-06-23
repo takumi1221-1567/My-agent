@@ -10,7 +10,7 @@ import uuid
 import boto3
 from boto3.dynamodb.conditions import Key
 
-TABLE_NAME = os.environ.get("DYNAMODB_TABLE", "ret-memory")
+TABLE_NAME = os.environ.get("DYNAMODB_TABLE", "myagent-memory")
 dynamodb   = boto3.resource("dynamodb")
 table      = dynamodb.Table(TABLE_NAME)
 

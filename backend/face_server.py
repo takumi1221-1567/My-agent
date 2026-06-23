@@ -1,5 +1,5 @@
 """
-RET 顔認証サーバー（FastAPI + DeepFace）
+My agent 顔認証サーバー（FastAPI + DeepFace）
 iPhone / MacBook カメラ対応
 
 起動: python3 backend/face_server.py
@@ -21,10 +21,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 # 顔データ保存先
-FACES_DB = Path.home() / ".ret" / "faces.json"
+FACES_DB = Path.home() / ".myagent" / "faces.json"
 FACES_DB.parent.mkdir(parents=True, exist_ok=True)
 
-app = FastAPI(title="RET Face Auth")
+app = FastAPI(title="My agent Face Auth")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -57,7 +57,7 @@ def base64_to_img_path(b64: str) -> str:
         b64 = b64.split(",", 1)[1]
     data = base64.b64decode(b64)
     img  = Image.open(io.BytesIO(data)).convert("RGB")
-    tmp  = Path("/tmp") / f"ret_face_{uuid.uuid4().hex}.jpg"
+    tmp  = Path("/tmp") / f"myagent_face_{uuid.uuid4().hex}.jpg"
     img.save(str(tmp), "JPEG")
     return str(tmp)
 
@@ -125,7 +125,7 @@ def register(req: RegisterRequest):
     顔画像と名前を登録する
     """
     faces = load_faces()
-    img_dir  = Path.home() / ".ret" / "face_images"
+    img_dir  = Path.home() / ".myagent" / "face_images"
     img_dir.mkdir(exist_ok=True)
 
     face_id  = uuid.uuid4().hex
@@ -165,6 +165,6 @@ def delete_face(face_id: str):
 
 
 if __name__ == "__main__":
-    print("=== RET 顔認証サーバー起動 ===")
+    print("=== My agent 顔認証サーバー起動 ===")
     print("URL: http://localhost:8001")
     uvicorn.run(app, host="0.0.0.0", port=8001, log_level="warning")

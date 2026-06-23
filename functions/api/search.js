@@ -13,13 +13,13 @@
  *
  * POST /api/search   （検索結果の保存 / D-7）
  *   Body: { action: "save", q, content, pw: "<トークン>" }
- *     → KV に保存（Mac OFF でも残る）＋ AINAS 起動中なら Obsidian raw/ にも書き込み
+ *     → KV に保存（Mac OFF でも残る）＋ ローカルAI 起動中なら Obsidian raw/ にも書き込み
  *     → { saved: true, file }
  *
  * 設計方針:
  *   - トークンは環境シークレット env.SEARCH_TOKEN で照合（コードに平文を置かない / R-6順守）。
  *     クライアントはユーザーが初回入力した値を localStorage から送る（公開JSに値を載せない）。
- *   - 保存は memory.js と同じく AINAS `/api/memory/save`（folder=raw）へ転送（Mac起動中のみ）。
+ *   - 保存は memory.js と同じく ローカルAI `/api/memory/save`（folder=raw）へ転送（Mac起動中のみ）。
  */
 
 const CORS = {
@@ -31,14 +31,14 @@ const CORS = {
 export async function onRequest({ request, env }) {
   if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS });
 
-  // ── GET ?action=pending: AINAS(Mac起動中)がスマホ保存の検索結果を取り込む ──
-  // x-sync-token 認証。KV `search_raw:*` を一覧で返し、AINAS が Obsidian raw/ に書き込む。
+  // ── GET ?action=pending: ローカルAI(Mac起動中)がスマホ保存の検索結果を取り込む ──
+  // x-sync-token 認証。KV `search_raw:*` を一覧で返し、ローカルAI が Obsidian raw/ に書き込む。
   if (request.method === 'GET') {
     const url = new URL(request.url);
     if (url.searchParams.get('action') !== 'pending') return json(400, { error: 'unknown action' });
     const token = request.headers.get('x-sync-token') || '';
     if (!env.CF_SYNC_TOKEN || token !== env.CF_SYNC_TOKEN) return json(401, { error: 'Unauthorized' });
-    const kv = env.RET_MEMORY;
+    const kv = env.MEMORY;
     if (!kv) return json(200, { items: [] });
     const items = [];
     try {
@@ -78,29 +78,29 @@ export async function onRequest({ request, env }) {
     ].join('\n');
 
     // 1) KV に保存（クラウド・Mac OFF でも残る）
-    const kv = env.RET_MEMORY;
+    const kv = env.MEMORY;
     if (kv) {
       try { await kv.put(`search_raw:${file}`, md); } catch { /* 続行 */ }
     }
 
-    // 2) AINAS（Mac起動中）に転送 → Obsidian raw/ に書き込み
-    let ainasResult = null;
-    const ainasBase = ((kv && await kv.get('_config_ainas_url')) || '').replace(/\/$/, '');
-    if (ainasBase) {
+    // 2) ローカルAI（Mac起動中）に転送 → Obsidian raw/ に書き込み
+    let local-aiResult = null;
+    const local-aiBase = ((kv && await kv.get('_config_local-ai_url')) || '').replace(/\/$/, '');
+    if (local-aiBase) {
       try {
-        const res = await fetch(`${ainasBase}/api/memory/save`, {
+        const res = await fetch(`${local-aiBase}/api/memory/save`, {
           method:  'POST',
           headers: { 'Content-Type': 'application/json' },
           body:    JSON.stringify({ folder: 'raw', filename: file, content: md }),
           signal:  AbortSignal.timeout(5000),
         });
-        ainasResult = res.ok ? 'saved' : `AINAS error ${res.status}`;
+        local-aiResult = res.ok ? 'saved' : `ローカルAI error ${res.status}`;
       } catch (e) {
-        ainasResult = `AINAS unreachable: ${e.message}`;
+        local-aiResult = `ローカルAI unreachable: ${e.message}`;
       }
     }
 
-    return json(200, { saved: true, file: `raw/${file}`, ainas: ainasResult });
+    return json(200, { saved: true, file: `raw/${file}`, local-ai: local-aiResult });
   }
 
   // ── 検索（D-4）─────────────────────────────────────────
@@ -115,7 +115,7 @@ export async function onRequest({ request, env }) {
     const ddgUrl = `https://api.duckduckgo.com/?q=${encodeURIComponent(q)}` +
                    `&format=json&no_html=1&skip_disambig=1&kl=jp-jp`;
     const res = await fetch(ddgUrl, {
-      headers: { 'User-Agent': 'RET-AINAS/1.0 (search)' },
+      headers: { 'User-Agent': 'My agent-ローカルAI/1.0 (search)' },
       signal:  AbortSignal.timeout(8000),
     });
     if (res.ok) {
@@ -153,7 +153,7 @@ export async function onRequest({ request, env }) {
 // Wikipedia（日本語）で検索語に最も近い記事の導入文を取得する。
 async function searchWikipedia(q) {
   const base = 'https://ja.wikipedia.org/w/api.php';
-  const ua   = { 'User-Agent': 'RET-AINAS/1.0 (search)' };
+  const ua   = { 'User-Agent': 'My agent-ローカルAI/1.0 (search)' };
 
   // 検索でタイトルを得る
   const sUrl = `${base}?action=query&format=json&list=search&srlimit=1&srsearch=${encodeURIComponent(q)}`;

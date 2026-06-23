@@ -1,7 +1,7 @@
 /**
  * Cloudflare Pages Function — /api/vault/sync
  *
- * AINAS（Mac側）から Obsidian vault の内容を D1 に同期するエンドポイント。
+ * ローカルAI（Mac側）から Obsidian vault の内容を D1 に同期するエンドポイント。
  * Mac が起動中のみ呼ばれる。Mac が OFF の間は D1 の内容を RAG として利用する。
  *
  * POST /api/vault/sync

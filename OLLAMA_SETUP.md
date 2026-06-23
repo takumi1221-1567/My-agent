@@ -9,7 +9,7 @@
 ```
 スマホ/ブラウザ
     ↓
-Cloudflare Pages（ret）
+Cloudflare Pages（my-agent）
     ↓  /api/chat
 Cloudflare Pages Function
     ↓  OLLAMA_URL（Tunnel経由）
@@ -44,7 +44,7 @@ ollama pull llama3
 ## STEP 3 ｜ 起動（毎回AIを使うとき）
 
 ```bash
-bash ~/RET/backend/start_ollama.sh
+bash ~/My agent/backend/start_ollama.sh
 ```
 
 しばらく待つと以下のようなURLが表示されます：
@@ -66,7 +66,7 @@ bash ~/RET/backend/start_ollama.sh
 
 > **画面：** https://dash.cloudflare.com/
 
-1. **Workers & Pages** → `ret` プロジェクトを選択
+1. **Workers & Pages** → `my-agent` プロジェクトを選択
 2. **「設定」** タブ → **「環境変数」**
 3. **「本番環境」** → **「変数を追加」**
 
@@ -82,15 +82,15 @@ bash ~/RET/backend/start_ollama.sh
 ## STEP 5 ｜ デプロイ
 
 ```bash
-cd ~/RET
-npx wrangler pages deploy public --project-name=ret --commit-message="Ollama連携"
+cd ~/My agent
+npx wrangler pages deploy public --project-name=my-agent --commit-message="Ollama連携"
 ```
 
 ---
 
 ## STEP 6 ｜ 動作確認
 
-ブラウザでRETを開いてマイクボタンをタップ → あいなすが返答すればOK。
+ブラウザでMy agentを開いてマイクボタンをタップ → AI執事が返答すればOK。
 
 ---
 
@@ -117,7 +117,7 @@ ollama pull llama3.2:3b  # 2GB（バランス型）
 
 起動時にモデル指定：
 ```bash
-bash ~/RET/backend/start_ollama.sh qwen2.5:3b
+bash ~/My agent/backend/start_ollama.sh qwen2.5:3b
 ```
 
 Cloudflare PagesのOLLAMA_MODELも同じ値に変更してください。

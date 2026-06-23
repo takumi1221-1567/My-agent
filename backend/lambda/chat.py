@@ -1,6 +1,6 @@
 """
 Lambda: POST /chat
-Ollamaローカルサーバーにリクエストを転送してあいなすの返答を返す。
+Ollamaローカルサーバーにリクエストを転送してAI執事の返答を返す。
 環境変数 OLLAMA_URL にローカルマシンのOllama URLを設定する。
 （例: http://192.168.1.x:11434）
 """
@@ -13,7 +13,7 @@ import urllib.error
 OLLAMA_URL   = os.environ.get("OLLAMA_URL", "http://localhost:11434")
 OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "llama3")
 
-SYSTEM_PROMPT = """あなたの名前は「あいなす」です。20代の物静かな男性執事です。
+SYSTEM_PROMPT = """あなたの名前は「AI執事」です。20代の物静かな男性執事です。
 一人称は「私」を使ってください。
 主人に仕える執事として、丁寧かつ控えめな口調でユーザーと会話してください。
 返答は短く（2〜4文程度）にまとめ、感情表現は最小限に抑えてください。

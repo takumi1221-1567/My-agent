@@ -1,6 +1,6 @@
-# RET — 仕様書（System Specification）
+# My agent — 仕様書（System Specification）
 
-> **RET** … 音声で対話できるAI執事「あいなす」を中核に、キャラクター動画演出・顔/パスワード認証・Obsidianナレッジ参照・Web検索・カレンダー連携・Discord多エージェント会議までを統合した、**スマートフォン最優先（PWA）** のパーソナルAIアシスタント。
+> **My agent** … 音声で対話できるAI執事「AI執事」を中核に、キャラクター動画演出・顔/パスワード認証・Obsidianナレッジ参照・Web検索・カレンダー連携・Discord多エージェント会議までを統合した、**スマートフォン最優先（PWA）** のパーソナルAIアシスタント。
 
 本番URL: https://your-project.pages.dev
 
@@ -8,7 +8,7 @@
 
 ## 1. コンセプト
 
-- **AI執事「あいなす」** … 20代の物静かな男性執事。丁寧・控えめな口調で、主人の質問・雑談・記憶・予定に応える。
+- **AI執事「AI執事」** … 20代の物静かな男性執事。丁寧・控えめな口調で、主人の質問・雑談・記憶・予定に応える。
 - **キャラクターの実在感** … 待機/歩行/着座/会話/外出ドライブ等を**実写風動画のクロスフェード**で表現（黒画面ゼロのシームレス遷移）。
 - **第二の脳（Obsidian）** … 回答の根拠は主人のObsidianノート（RAG）と「覚えて」で記憶した確定事実に限定。事実の捏造を禁止。
 - **スマホ最優先** … Mac（ローカルAI）が無くても、クラウド（Cloudflare）だけで会話・知識参照が完結。Macが在ればより高機能（ローカルOllama・Obsidian実ファイル書き込み）。
@@ -22,22 +22,22 @@
         │  HTTPS
         ▼
 [ Cloudflare Pages + Functions ]
-   ├─ /api/chat      … 会話（AINAS優先 → Workers AI 70B + D1 RAG）
-   ├─ /api/memory    … 記憶（KV + D1 + AINAS）
+   ├─ /api/chat      … 会話（ローカルAI優先 → Workers AI 70B + D1 RAG）
+   ├─ /api/memory    … 記憶（KV + D1 + ローカルAI）
    ├─ /api/face      … 顔認証
    ├─ /api/calendar  … 予定（KV）
    ├─ /api/search    … Web検索（DuckDuckGo + Wikipedia、パスワード認証）
    ├─ /api/vault/*   … Obsidian↔D1 同期・ランダム話題
    ├─ Workers AI     … @cf/meta/llama-3.3-70b-instruct-fp8-fast
    ├─ D1 (my-agent-vault) … Obsidianのミラー（RAG用全文検索）
-   └─ KV (RET_MEMORY)  … 記憶・設定・予定・検索キュー
+   └─ KV (MEMORY)  … 記憶・設定・予定・検索キュー
         ▲                         ▲
         │ pull(起動時/120秒)       │ push(変更時)
-[ AINAS (Mac / FastAPI + Ollama) ]──┘
+[ ローカルAI (Mac / FastAPI + Ollama) ]──┘
    └─ Obsidian Vault（iCloud）… Memory/ raw/ Knowledge/ AIニュース/ 等
         ▲
         │ /api/chat（同一エンドポイント）
-[ EAST (Discord 多エージェント会議ボット) ]
+[ AI chat team in your Discord (Discord 多エージェント会議ボット) ]
 ```
 
 ### 役割分担
@@ -49,8 +49,8 @@
 | 生成AI | Cloudflare Workers AI（Llama 3.3 70B） | Mac OFF時の会話生成 | ✅ |
 | 検索DB | Cloudflare D1（SQLite） | Obsidianミラーの全文検索（RAG） | ✅ |
 | KV | Cloudflare KV | 記憶・設定・予定・検索保存キュー | ✅ |
-| ローカルAI | AINAS（FastAPI + Ollama + Chroma） | Mac起動時の高精度応答・Obsidian実書き込み | ❌(任意) |
-| 連携 | EAST（discord.py） | Discordで多エージェント会議に参加 | ✅(CF経由) |
+| ローカルAI | ローカルAI（FastAPI + Ollama + Chroma） | Mac起動時の高精度応答・Obsidian実書き込み | ❌(任意) |
+| 連携 | AI chat team in your Discord（discord.py） | Discordで多エージェント会議に参加 | ✅(CF経由) |
 
 ---
 
@@ -78,8 +78,8 @@
 - **プロンプトインジェクション対策・機密非開示**をシステムプロンプトに最優先で組み込み。
 
 ### 4.3 記憶（「覚えて」）
-- 「◯◯を覚えて」→ `/api/memory` → **KV + D1 + AINAS（Obsidian Memory/）** に保存。
-- KV/D1は即時。Obsidian実ファイルはAINAS（Mac）が在れば即、無ければ起動時に逆同期。
+- 「◯◯を覚えて」→ `/api/memory` → **KV + D1 + ローカルAI（Obsidian Memory/）** に保存。
+- KV/D1は即時。Obsidian実ファイルはローカルAI（Mac）が在れば即、無ければ起動時に逆同期。
 
 ### 4.4 キャラクター動画演出（状態機械）
 - 状態: `idle / listening / thinking / talking / bored / wandering / sitting / returning`。
@@ -105,12 +105,12 @@
 ### 4.9 カレンダー連携
 - Google Apps Script → `/api/calendar`（Bearer認証）→ KV保存 → 起動時に予定を読み上げ・会話でも参照。
 
-### 4.10 Discord会議ボット（EAST・別リポジトリ / ローカル優先）
-- Discordの発言に、ローカルOllamaエージェント（Personal/Customer）＋秘書AIあいなすが応答（1問1答）。
+### 4.10 Discord会議ボット（AI chat team in your Discord・別リポジトリ / ローカル優先）
+- Discordの発言に、ローカルOllamaエージェント（Personal/Customer）＋秘書AIAI執事が応答（1問1答）。
 - **知識ソースは Supabase `obsidian_knowledge`**（Obsidianのミラー）。ヒットすればローカルOllamaで要約回答。
-- 答えられない質問は **「勉強させていただきます」→ RET `/api/search`（DuckDuckGo+Wikipedia）→ 回答 → Supabaseへ即学習＋Obsidian `raw/` 保存**（自動学習）。
-- **まとめ役EAST**: 「終わり」で会議ログを【要約】【決定事項】【次アクション】に要約して終了。
-- **Gemini不使用**（旧構成のGAS→Gemini生成を全廃。GASは記録用のみ）。詳細は EAST リポジトリ README 参照。
+- 答えられない質問は **「勉強させていただきます」→ My agent `/api/search`（DuckDuckGo+Wikipedia）→ 回答 → Supabaseへ即学習＋Obsidian `raw/` 保存**（自動学習）。
+- **まとめ役AI chat team in your Discord**: 「終わり」で会議ログを【要約】【決定事項】【次アクション】に要約して終了。
+- **Gemini不使用**（旧構成のGAS→Gemini生成を全廃。GASは記録用のみ）。詳細は AI chat team in your Discord リポジトリ README 参照。
 
 ---
 
@@ -118,30 +118,30 @@
 
 | メソッド / パス | 説明 | 認証 |
 |---|---|---|
-| `POST /api/chat` | 会話生成（AINAS優先→70B+D1 RAG+KV記憶+予定） | 任意トークン |
-| `GET/POST/DELETE /api/memory` | 記憶の一覧/保存/全削除（KV+D1+AINAS） | — |
+| `POST /api/chat` | 会話生成（ローカルAI優先→70B+D1 RAG+KV記憶+予定） | 任意トークン |
+| `GET/POST/DELETE /api/memory` | 記憶の一覧/保存/全削除（KV+D1+ローカルAI） | — |
 | `POST /api/face/verify` `/register` | 顔認証・顔登録 | — |
 | `GET/POST /api/calendar` | 予定の取得/保存 | POSTはBearer |
 | `POST /api/search` | Web検索（DuckDuckGo+Wikipedia） | パスワード(214200) |
-| `GET /api/search?action=pending` | 検索保存の取り込み待ち一覧（AINAS用） | x-sync-token |
+| `GET /api/search?action=pending` | 検索保存の取り込み待ち一覧（ローカルAI用） | x-sync-token |
 | `GET /api/vault/random` | ランダムな話題（独り言の多様化） | — |
 | `POST/DELETE /api/vault/sync` | Obsidian→D1 チャンク同期 | x-sync-token |
 
 ### バインディング
-- `AI`（Workers AI）, `DB`（D1: my-agent-vault）, `RET_MEMORY`（KV）
+- `AI`（Workers AI）, `DB`（D1: my-agent-vault）, `MEMORY`（KV）
 
 ### データストア
-- **KV**: `memory:*` / `memory_index` / `calendar_today` / `search_raw:*` / `_config_ainas_url` 等
+- **KV**: `memory:*` / `memory_index` / `calendar_today` / `search_raw:*` / `_config_local-ai_url` 等
 - **D1**: `vault_chunks(path, chunk, updated_at)` / `memories(id, keyword, content, saved_at)`
-- **Supabase**（EAST用）: `public.obsidian_knowledge(id, path, content, updated_at)`（RLS有効・Obsidianのコピー＋Discord自動学習の蓄積先）
+- **Supabase**（AI chat team in your Discord用）: `public.obsidian_knowledge(id, path, content, updated_at)`（RLS有効・Obsidianのコピー＋Discord自動学習の蓄積先）
 
 ---
 
 ## 6. データフロー（要点）
 
-- **会話**: PWA → `/api/chat` → (AINAS到達可なら優先) → 不可なら **Workers AI 70B**。D1からRAGチャンク・KVから記憶・予定を**システムプロンプトに注入**して回答。
-- **RAG**: Obsidianノートは AINAS が変更時/起動時に**D1へpush（ミラー）**。クラウドは常にD1を読むため**Mac OFFでも知識参照可**。検索は本文＋ファイルパスをLIKE、日本語はキーワード分解＋カナ→英語展開で再現率を確保。
-- **逆同期**: スマホで保存した記憶・検索結果はKVに常時保持。AINAS（Mac）が**起動時＋120秒ごと**にpullしてObsidian（Memory/・raw/）へ冪等書き込み。
+- **会話**: PWA → `/api/chat` → (ローカルAI到達可なら優先) → 不可なら **Workers AI 70B**。D1からRAGチャンク・KVから記憶・予定を**システムプロンプトに注入**して回答。
+- **RAG**: Obsidianノートは ローカルAI が変更時/起動時に**D1へpush（ミラー）**。クラウドは常にD1を読むため**Mac OFFでも知識参照可**。検索は本文＋ファイルパスをLIKE、日本語はキーワード分解＋カナ→英語展開で再現率を確保。
+- **逆同期**: スマホで保存した記憶・検索結果はKVに常時保持。ローカルAI（Mac）が**起動時＋120秒ごと**にpullしてObsidian（Memory/・raw/）へ冪等書き込み。
 
 ---
 
@@ -170,7 +170,7 @@
 ## 9. バージョン / デプロイ
 
 - キャッシュバスト: `index.html → app.js → scene.js/voice.js` の参照クエリ `?v=N` を更新。
-- デプロイ: `npx wrangler pages deploy public --project-name=ret --commit-dirty=true`
+- デプロイ: `npx wrangler pages deploy public --project-name=my-agent --commit-dirty=true`
 - 現行: index.html/app.js=v35, scene.js=v31, voice.js=v2, css=v3。
 
 ---
@@ -181,19 +181,19 @@
 
 | 要素 | 役割 | 起動・再現 |
 |---|---|---|
-| **RET (Cloudflare)** | PWA本体・API・70B・D1・KV | 常時稼働。デプロイは上記 wrangler コマンド |
-| **AINAS (Mac / FastAPI)** | ローカルOllama応答・Obsidian読み書き・D1/Supabase同期 | launchd `com.ainas.server`（ログイン時自動）。再起動 `launchctl kickstart -k gui/$(id -u)/com.ainas.server`。要 `CF_SYNC_URL`/`CF_SYNC_TOKEN` |
+| **My agent (Cloudflare)** | PWA本体・API・70B・D1・KV | 常時稼働。デプロイは上記 wrangler コマンド |
+| **ローカルAI (Mac / FastAPI)** | ローカルOllama応答・Obsidian読み書き・D1/Supabase同期 | launchd `com.local-ai.server`（ログイン時自動）。再起動 `launchctl kickstart -k gui/$(id -u)/com.local-ai.server`。要 `CF_SYNC_URL`/`CF_SYNC_TOKEN` |
 | **Ollama (Mac)** | ローカルLLM（llama3 / gemma2:2b） | launchd `com.ollama.serve`（自動） |
-| **EAST (Mac / discord.py)** | Discord会議ボット | launchd `com.east.discord-bot`（自動）。`config_local.py` に各トークン＋`SUPABASE_*` |
-| **Supabase** | EASTの知識ベース `obsidian_knowledge` | 無料枠は非活動で自動停止 → ダッシュボードで Restore |
+| **AI chat team in your Discord (Mac / discord.py)** | Discord会議ボット | launchd `com.aichatteam.discord-bot`（自動）。`config_local.py` に各トークン＋`SUPABASE_*` |
+| **Supabase** | AI chat team in your Discordの知識ベース `obsidian_knowledge` | 無料枠は非活動で自動停止 → ダッシュボードで Restore |
 
 ### 日常運用（最小手順）
-- **スマホ/Web（RET本体）**: 操作不要（常時稼働）。
-- **Discord（EAST）**: 「**Macを開く**（=Bot/Ollama/AINAS 自動起動）」＋「**Supabaseが停止していたら Restore**」だけ。
+- **スマホ/Web（My agent本体）**: 操作不要（常時稼働）。
+- **Discord（AI chat team in your Discord）**: 「**Macを開く**（=Bot/Ollama/ローカルAI 自動起動）」＋「**Supabaseが停止していたら Restore**」だけ。
 
 ### 主要シークレット（コードに置かず env / KV / config_local.py / CFシークレットで管理）
-- CF: `CF_SYNC_TOKEN` / `AINAS_API_TOKEN`(任意) / KV `_config_ainas_url`
-- AINAS(env): `CF_SYNC_URL` / `CF_SYNC_TOKEN`
-- EAST(`config_local.py`): `BOT_TOKEN` / `GAS_URL` / `AINAS_API_TOKEN` / `SUPABASE_URL` / `SUPABASE_SERVICE_KEY`
+- CF: `CF_SYNC_TOKEN` / `ローカルAI_API_TOKEN`(任意) / KV `_config_local-ai_url`
+- ローカルAI(env): `CF_SYNC_URL` / `CF_SYNC_TOKEN`
+- AI chat team in your Discord(`config_local.py`): `BOT_TOKEN` / `GAS_URL` / `ローカルAI_API_TOKEN` / `SUPABASE_URL` / `SUPABASE_SERVICE_KEY`
 
-詳細な実装経緯・不具合の真因は `WORK_REPORT_2026-06-*.md`、EAST の詳細は EAST リポジトリ README を参照。
+詳細な実装経緯・不具合の真因は `WORK_REPORT_2026-06-*.md`、AI chat team in your Discord の詳細は AI chat team in your Discord リポジトリ README を参照。

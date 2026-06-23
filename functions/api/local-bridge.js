@@ -2,7 +2,7 @@
  * Cloudflare Pages Function — POST /api/local-bridge
  *
  * Mac側ブリッジ（cloudflared）が現在のトンネルURLを通知する受け口。
- * KV(RET_MEMORY) に local_llm_url / local_llm_ts(秒) を書き、RET と AINAS-3.0 の
+ * KV(MEMORY) に local_llm_url / local_llm_ts(秒) を書き、My agent と another local AI app の
  * /api/chat が「最近通知された＝Macが起動中」のときだけローカル推論を使う。
  *
  *   POST { url: "https://xxxx.trycloudflare.com" }
@@ -20,7 +20,7 @@ const json = (s, o) => new Response(JSON.stringify(o),
 
 export async function onRequest({ request, env }) {
   if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS });
-  const kv = env.RET_MEMORY;
+  const kv = env.MEMORY;
   if (!kv) return json(503, { error: 'KV unavailable' });
 
   // 認証（プロキシと同じ共有シークレット）

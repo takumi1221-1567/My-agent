@@ -1,8 +1,8 @@
 # AI 執事アプリ 量産ガイド
-## RET プロジェクト 完全技術仕様書
+## My agent プロジェクト 完全技術仕様書
 
 > 作成日: 2026-05-09  
-> 対象プロジェクト: RET (https://your-project.pages.dev)  
+> 対象プロジェクト: My agent (https://your-project.pages.dev)  
 > 次回類似アプリを作る際はこのファイルを起点にすること
 
 ---
@@ -60,8 +60,8 @@
 |------|------|
 | サービス | Cloudflare Pages（ホスティング） |
 | アカウント | you@example.com |
-| アカウント ID | `e57cdde5f4b925eb9608091648b1e9bb` |
-| プロジェクト名 | `ret` |
+| アカウント ID | `<your-cloudflare-account-id>` |
+| プロジェクト名 | `my-agent` |
 | 本番 URL | https://your-project.pages.dev |
 | CLI ログイン | `npx wrangler login`（OAuth、ブラウザで認証） |
 | 認証トークン保存場所 | `~/.wrangler/config/default.toml` |
@@ -77,7 +77,7 @@
 
 ```
 KV Namespace ID: <your-kv-namespace-id>
-KV Namespace 名: RET_MEMORY
+KV Namespace 名: MEMORY
 ```
 
 **Cloudflare Workers AI（無料枠）**
@@ -101,11 +101,11 @@ KV Namespace 名: RET_MEMORY
 
 | サービス | リソース名 | 用途 |
 |---------|-----------|------|
-| DynamoDB | `ret-memory` | 会話記憶の永続保存 |
-| Lambda | `ret-memory` | DynamoDB CRUD API |
-| Lambda | `ret-chat` | Ollama チャット中継（オプション） |
+| DynamoDB | `myagent-memory` | 会話記憶の永続保存 |
+| Lambda | `myagent-memory` | DynamoDB CRUD API |
+| Lambda | `myagent-chat` | Ollama チャット中継（オプション） |
 | API Gateway | `mgxzxd49sk` | Lambda へのエンドポイント |
-| S3 | `ret-faces-143301474624` | 顔画像ストレージ（予備） |
+| S3 | `myagent-faces-143301474624` | 顔画像ストレージ（予備） |
 | Budgets | アラート | $1/月でコスト通知 |
 
 **API Gateway エンドポイント（固定 URL）**
@@ -115,7 +115,7 @@ https://mgxzxd49sk.execute-api.ap-northeast-1.amazonaws.com/prod
 
 **DynamoDB テーブル設計**
 ```
-テーブル名: ret-memory
+テーブル名: myagent-memory
 パーティションキー: user_id (String)
 ソートキー: timestamp (String)
 属性: keyword, context
@@ -184,10 +184,10 @@ pydantic
      ├─ /api/memory → KV._config_memory_url → AWS API Gateway
      │                                              │
      │                                              ▼
-     │                                    [Lambda: ret-memory]
+     │                                    [Lambda: myagent-memory]
      │                                              │
      │                                              ▼
-     │                                    [DynamoDB: ret-memory]
+     │                                    [DynamoDB: myagent-memory]
      │
      └─ /api/face  → KV._config_face_url → Cloudflare Tunnel
                                                │
@@ -200,7 +200,7 @@ pydantic
 ## 4. ファイル構成と役割
 
 ```
-~/RET/
+~/My agent/
 ├── wrangler.toml              ← Cloudflare 設定（KV + AI バインディング）
 ├── PRODUCTION_GUIDE.md        ← このファイル
 ├── WORK_REPORT.md             ← 作業履歴
@@ -386,7 +386,7 @@ functions/api/chat.js
 ### システムプロンプト（キャラクター設定）
 
 ```
-あなたの名前は「あいなす」です。20代の物静かな男性執事です。
+あなたの名前は「AI執事」です。20代の物静かな男性執事です。
 一人称は「私」を使ってください。
 主人に仕える執事として、丁寧かつ控えめな口調でユーザーと会話してください。
 返答は短く（2〜4文程度）にまとめ、感情表現は最小限に抑えてください。
@@ -452,8 +452,8 @@ DELETE /face/{id}     → {deleted: true}
 ### データ保存先（Mac ローカル）
 
 ```
-顔 DB:     ~/.ret/faces.json
-顔画像:    ~/.ret/face_images/{uuid}.jpg
+顔 DB:     ~/.myagent/faces.json
+顔画像:    ~/.myagent/face_images/{uuid}.jpg
 ```
 
 ### DeepFace 設定
@@ -585,7 +585,7 @@ BUTLER_MAX_MS = 120_000
 ### ステップ 1: プロジェクトコピー
 
 ```bash
-cp -r ~/RET ~/NEW_PROJECT
+cp -r ~/My agent ~/NEW_PROJECT
 cd ~/NEW_PROJECT
 ```
 
@@ -609,7 +609,7 @@ npx wrangler kv namespace create "MYAPP_MEMORY" --remote
 ### ステップ 4: AWS DynamoDB / Lambda 設定
 
 ```bash
-# 既存の ret プロジェクトのものを流用する場合はスキップ
+# 既存の my-agent プロジェクトのものを流用する場合はスキップ
 # 新規作成する場合:
 cd ~/NEW_PROJECT/backend
 bash deploy.sh   # IAM/DynamoDB/Lambda/API Gateway を一括作成
@@ -622,7 +622,7 @@ bash deploy.sh   # IAM/DynamoDB/Lambda/API Gateway を一括作成
 **3D モデル変更**
 1. GLB ファイルを `public/models/model.glb` に配置（25MB 以下）
 2. `scene.js` の `_cacheBones()` でボーン名を確認
-3. ブラウザコンソールで `[RET] bones found:` を確認
+3. ブラウザコンソールで `[My agent] bones found:` を確認
 4. `_applyArmPose()` のポーズ値を調整
 
 ### ステップ 6: KV バインディング確認
@@ -630,7 +630,7 @@ bash deploy.sh   # IAM/DynamoDB/Lambda/API Gateway を一括作成
 ```bash
 # wrangler.toml
 [[kv_namespaces]]
-binding = "RET_MEMORY"
+binding = "MEMORY"
 id = "（新しいID）"
 
 [ai]
@@ -667,7 +667,7 @@ AWS_MEMORY_URL="（API Gateway URL）"
 ### 3D モデルが T ポーズ（腕が横に伸びた状態）になる
 
 **原因**: ボーン名が一致していない  
-**確認**: ブラウザコンソールで `[RET] bones found:` のログを確認  
+**確認**: ブラウザコンソールで `[My agent] bones found:` のログを確認  
 **解決**: `_cacheBones()` の検索文字列を実際のボーン名に合わせて追加
 
 ---
@@ -702,8 +702,8 @@ AWS_MEMORY_URL="（API Gateway URL）"
 curl https://mgxzxd49sk.execute-api.ap-northeast-1.amazonaws.com/prod/memory/get?user_id=default
 
 # Lambda ログ確認
-aws logs get-log-events --log-group-name /aws/lambda/ret-memory \
-  --log-stream-name "$(aws logs describe-log-streams --log-group-name /aws/lambda/ret-memory \
+aws logs get-log-events --log-group-name /aws/lambda/myagent-memory \
+  --log-stream-name "$(aws logs describe-log-streams --log-group-name /aws/lambda/myagent-memory \
   --order-by LastEventTime --descending --max-items 1 \
   --query 'logStreams[0].logStreamName' --output text)"
 ```
@@ -715,7 +715,7 @@ aws logs get-log-events --log-group-name /aws/lambda/ret-memory \
 ```bash
 # wrangler deploy 後に REST API で強制バインド
 TOKEN=$(grep oauth_token ~/.wrangler/config/default.toml | awk -F'"' '{print $2}')
-ACCOUNT_ID="e57cdde5f4b925eb9608091648b1e9bb"
+ACCOUNT_ID="<your-cloudflare-account-id>"
 KV_ID="（KV Namespace ID）"
 
 curl -s -X PATCH \
@@ -726,7 +726,7 @@ curl -s -X PATCH \
     "deployment_configs": {
       "production": {
         "kv_namespaces": {
-          "RET_MEMORY": {"namespace_id": "'${KV_ID}'"}
+          "MEMORY": {"namespace_id": "'${KV_ID}'"}
         }
       }
     }
@@ -747,7 +747,7 @@ npx wrangler login   # ブラウザが開く → Cloudflare でログイン
 
 ```bash
 # ローカル AI（高品質）を使う場合
-bash ~/RET/backend/start_all.sh
+bash ~/My agent/backend/start_all.sh
 
 # Workers AI（常時オン）だけ使う場合
 # → 何もしなくていい。アプリ URL を開くだけ
@@ -760,7 +760,7 @@ open https://your-project.pages.dev
 
 ```bash
 # 通常デプロイ
-npx wrangler pages deploy public --project-name=ret --commit-dirty=true
+npx wrangler pages deploy public --project-name=my-agent --commit-dirty=true
 
 # KV 値の確認
 npx wrangler kv key list --namespace-id=<your-kv-namespace-id> --remote

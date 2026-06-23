@@ -1,6 +1,6 @@
 #!/bin/bash
 # ╔══════════════════════════════════════════════════════════╗
-# ║  RET — 全自動起動スクリプト                              ║
+# ║  My agent — 全自動起動スクリプト                              ║
 # ║  Ollama + 顔認証 + Tunnel URL自動登録 + デプロイ         ║
 # ╚══════════════════════════════════════════════════════════╝
 set -e
@@ -12,8 +12,8 @@ KV_ID="<your-kv-namespace-id>"
 PROJECT_NAME="your-project"
 AWS_MEMORY_URL="https://mgxzxd49sk.execute-api.ap-northeast-1.amazonaws.com/prod"
 
-LOG_OLLAMA="/tmp/ret_ollama_tunnel.log"
-LOG_FACE="/tmp/ret_face_tunnel.log"
+LOG_OLLAMA="/tmp/myagent_ollama_tunnel.log"
+LOG_FACE="/tmp/myagent_face_tunnel.log"
 
 cleanup() {
   echo ""
@@ -39,7 +39,7 @@ wait_for_url() {
 
 echo ""
 echo "╔══════════════════════════════════════════════════════╗"
-echo "║            RET ローカルサーバー起動中                ║"
+echo "║            My agent ローカルサーバー起動中                ║"
 echo "╚══════════════════════════════════════════════════════╝"
 
 # ─── 1. Ollama ───────────────────────────────────────────────
@@ -126,7 +126,7 @@ echo "  ✅ デプロイ完了"
 # ─── 完了 ────────────────────────────────────────────────────
 echo ""
 echo "╔══════════════════════════════════════════════════════╗"
-echo "║  ✅ RET 起動完了！                                   ║"
+echo "║  ✅ My agent 起動完了！                                   ║"
 echo "║                                                      ║"
 echo "║  🌐 https://your-project.pages.dev                            ║"
 echo "║                                                      ║"
