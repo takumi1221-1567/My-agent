@@ -249,14 +249,7 @@ export class SceneController {
     play(0);
   }
 
-  // TRPGモード用: 指定動画をミュート・ループで背景に流し続ける（思考/発話で切り替わらない）。
-  // state を 'trpg' にしておくことで、終了時の setState(IDLE) が確実に待機へクロスフェードする。
-  playTrpgLoop(src = 'videos/TRPG.mp4') {
-    this.state = 'trpg';
-    this._crossfade(src);
-  }
-
-  // ユーザー操作（顔認証ボタン・マイクタップ等のジェスチャー）後に「イベント動画」の音声を解禁する。
+  // ユーザー操作（マイクタップ等のジェスチャー）後に「イベント動画」の音声を解禁する。
   // 待機/話す/アイドリングのループ動画は対象外（常時ミュートのまま）。
   enableSound() {
     this._soundOn = true;

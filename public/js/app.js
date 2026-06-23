@@ -44,7 +44,6 @@ const SOLO_BACKROOM = [
   'videos/バックルーム単独7.mp4', 'videos/バックルーム単独7b.mp4', 'videos/バックルーム単独8.mp4',
 ];
 
-// localStorage に保存し、サーバー側 env.SEARCH_TOKEN と突き合わせる。
 
 
 // ── 外出シーケンス動画（外出→ドア→発進→後部座席でループ待機 / 音声ON）──
@@ -713,7 +712,7 @@ class MyAgentApp {
     const timer = setTimeout(() => this._cancelLocalAI(), 30000);
     try {
       const body = { message: text };
-      if (opts.mode) body.mode = opts.mode;            // 明示モード（TRPG継続など）
+      if (opts.mode) body.mode = opts.mode;            // 明示モード（任意）
       if (opts.history) body.history = opts.history;   // マルチターン履歴
       const res = await fetch('/api/chat', {
         method:  'POST',
