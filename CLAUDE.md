@@ -5,7 +5,7 @@ as a phone‑first PWA on Cloudflare Pages, with **lifelike character‑video pr
 "cloned template" to "deployed and talking," autonomously, pausing only for the few things only a human
 can provide.
 
-Read this first, then `README.md`, `docs/MEDIA_PROMPTS.md`, and `docs/ADDING_FEATURES.md`.
+Read this first, then `README.md`, `docs/TECHNICAL.md` (how the presentation works), `docs/MEDIA_PROMPTS.md`, and `docs/ADDING_FEATURES.md`.
 
 ## What this agent is (scope)
 Exactly four capabilities — keep it minimal:
