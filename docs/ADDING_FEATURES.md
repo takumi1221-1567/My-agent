@@ -51,7 +51,7 @@ medical diagnoses.
 2. In `functions/api/chat.js`, branch on `mode`:
    ```js
    const sys = body.mode === 'checkin'
-     ? 'あなたはAI執事。体調を一問ずつ丁寧に伺います。診断・断定はせず、深刻そうなら受診を勧めます。'
+     ? 'あなたは執事。体調を一問ずつ丁寧に伺います。診断・断定はせず、深刻そうなら受診を勧めます。'
      : PERSONA;
    ```
    and send `{ message, mode: 'checkin' }` from `_checkinTurn`.

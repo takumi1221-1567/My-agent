@@ -127,14 +127,14 @@ function _pickButlerPhrase() {
 // ── 取扱説明書 ────────────────────────────────────────────
 const MANUAL_HTML = `
 <h3>🤖 My agentってなに？</h3>
-<p>話しかけると、なんでも答えてくれる<strong>AIのともだち「AI執事」</strong>がいるよ！</p>
+<p>話しかけると、なんでも答えてくれる<strong>AIアシスタント</strong>がいるよ！</p>
 
 <h3>🎙️ 話しかけかた</h3>
 <p><strong>① 右上のまるいボタンを1回おす</strong><br>
 ボタンが赤くなったら聞いているよ。</p>
 <p><strong>② 話しかける</strong><br>
 なんでも話してOK！終わると自動で送信されるよ。</p>
-<p><strong>③ AI執事が答えてくれる</strong><br>
+<p><strong>③ 執事が答えてくれる</strong><br>
 声と文字で答えてくれるよ。止めたいときはもう一度ボタンをおしてね。</p>
 
 <h3>✨ まほうのことば</h3>
@@ -142,7 +142,7 @@ const MANUAL_HTML = `
 </p>
 
 <h3>💤 ほっておくと…</h3>
-<p>しばらく操作しないと、AI執事が動きだすよ。話しかけるとすぐ戻ってくるよ！</p>
+<p>しばらく操作しないと、執事が動きだすよ。話しかけるとすぐ戻ってくるよ！</p>
 
 <h3>🆘 こまったとき</h3>
 <p><strong>「もう一度試して」と出た</strong> → ボタンをもう一回おしてね<br>
@@ -199,9 +199,9 @@ class MyAgentApp {
         if (ls) { ls.classList.add('done'); setTimeout(() => ls.remove(), 900); }
         this.scene.enableSound();
         // 起動の挨拶（会話テンプレート）
-        const greeting = 'はじめまして。私はAI執事と申します。何なりとお申し付けください。';
+        const greeting = 'はじめまして。何なりとお申し付けください。';
         setTimeout(() => {
-          this._showMessage(`AI執事: ${greeting}`);
+          this._showMessage(`執事: ${greeting}`);
           this.voice.speak(greeting);
         }, 500);
         this._setStatus('タップして話しかける');
@@ -375,7 +375,7 @@ class MyAgentApp {
         // 外出/他モードへの遷移によるキャンセルは静かに終了
         if (this._outingMode || this._goMode) return;
         // タイムアウト/通信失敗で「考え中」のまま固まらないよう、通知して復帰
-        this._showMessage('AI執事: 申し訳ございません、うまく応答できませんでした。もう一度お試しください。');
+        this._showMessage('執事: 申し訳ございません、うまく応答できませんでした。もう一度お試しください。');
         this.busy = false;
         this.scene.setState(STATE.IDLE);
         this._setStatus('タップして話しかける');
@@ -387,9 +387,9 @@ class MyAgentApp {
       // 非同期待機中に外出モードへ遷移していた場合は返答を捨てる
       if (this._outingMode) return;
 
-      console.log('[AI執事]', reply);
+      console.log('[執事]', reply);
 
-      this._showMessage(`AI執事: ${reply}`);
+      this._showMessage(`執事: ${reply}`);
       this.scene.setState(STATE.TALKING);
       this._setStatus('話してる...');
       this._micState('idle');
@@ -451,7 +451,7 @@ class MyAgentApp {
         return;
       }
       const phrase = OUTING_SMALLTALK[Math.floor(Math.random() * OUTING_SMALLTALK.length)];
-      this._showMessage(`AI執事: ${phrase}`);
+      this._showMessage(`執事: ${phrase}`);
       this.voice.speak(phrase, {
         onEnd: () => { if (this._outingMode) this._startOutingSmalltalk(); },
       });
@@ -481,13 +481,13 @@ class MyAgentApp {
         this._micState('idle');
         this._resetWanderTimer();
         const phrase = 'おかえりなさいませ。お疲れ様でございました。';
-        this._showMessage(`AI執事: ${phrase}`);
+        this._showMessage(`執事: ${phrase}`);
         this.voice.speak(phrase);
       }, /* loopLast */ false, /* onLoopStart */ null, /* withSound */ true);
     };
 
     const phrase = '帰りますね。';
-    this._showMessage(`AI執事: ${phrase}`);
+    this._showMessage(`執事: ${phrase}`);
     let started = false;
     const startOnce = () => { if (!started) { started = true; playReturn(); } };
     this.voice.speak(phrase, { onEnd: startOnce });
@@ -507,7 +507,7 @@ class MyAgentApp {
     this._micState('idle');
     this._setStatus('一緒に行きますか？（「はい」か「いいえ」）');
     const phrase = '一緒にいかがですか？';
-    this._showMessage(`AI執事: ${phrase}`);
+    this._showMessage(`執事: ${phrase}`);
     this.scene.setState(STATE.TALKING);
     this.voice.speak(phrase, {
       onEnd: () => { if (this._goMode && this._goPhase === 'prompt') this.scene.setState(STATE.IDLE); },
@@ -628,7 +628,7 @@ class MyAgentApp {
       this._micState('idle');
       this._resetWanderTimer();
       const phrase = 'おかえりなさいませ。';
-      this._showMessage(`AI執事: ${phrase}`);
+      this._showMessage(`執事: ${phrase}`);
       this.voice.speak(phrase);
     }, /* loopLast */ false, /* onLoopStart */ null, /* withSound */ true);
   }
@@ -647,7 +647,7 @@ class MyAgentApp {
       // 生成中にモード/フェーズが変わった、または聞き取り中になったら破棄
       if (!this._goMode || this._goPhase !== 'travel' || this.voice.isListening) return;
       if (!phrase) { this._startGoIdleTalk(); return; }
-      this._showMessage(`AI執事: ${phrase}`);
+      this._showMessage(`執事: ${phrase}`);
       this.voice.speak(phrase, {
         onEnd: () => { if (this._goMode && this._goPhase === 'travel') this._startGoIdleTalk(); },
       });
@@ -685,7 +685,7 @@ class MyAgentApp {
     // 応答待ちの間にモード/フェーズが変わっていたら破棄
     if (!this._goMode || this._goPhase !== 'travel') return;
     if (!reply) reply = 'さようでございますか。';
-    this._showMessage(`AI執事: ${reply}`);
+    this._showMessage(`執事: ${reply}`);
     this.voice.speak(reply, {
       onEnd: () => {
         if (this._goMode && this._goPhase === 'travel') {
@@ -755,7 +755,7 @@ class MyAgentApp {
     if (!idleNow()) { this._resetButlerTimer(); return; }
 
     const phrase = _pickButlerPhrase();
-    this._showMessage(`AI執事: ${phrase}`);
+    this._showMessage(`執事: ${phrase}`);
     this.scene?.setState(STATE.BORED);           // アイドリング動画と同期再生
     this.voice?.speak(phrase, {
       onEnd: () => {

@@ -1,7 +1,7 @@
 {
   "name": "My agent",
   "short_name": "My agent",
-  "description": "パーソナルAI執事",
+  "description": "パーソナル執事",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#1a1a1a",
