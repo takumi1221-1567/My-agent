@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>RET つかいかた</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Hiragino Maru Gothic Pro', 'Hiragino Sans', 'YuGothic', sans-serif;
+      background: #fef9f0;
+      color: #333;
+      min-height: 100vh;
+      padding-bottom: 60px;
+    }
+
+    header {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: #fff;
+      padding: 32px 20px 24px;
+      text-align: center;
+    }
+    header .emoji { font-size: 52px; display: block; margin-bottom: 8px; }
+    header h1 { font-size: 26px; font-weight: 900; letter-spacing: 2px; }
+    header p  { font-size: 14px; margin-top: 6px; opacity: 0.9; }
+
+    .container { max-width: 480px; margin: 0 auto; padding: 0 16px; }
+
+    .card {
+      background: #fff;
+      border-radius: 20px;
+      padding: 24px 20px;
+      margin-top: 20px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    }
+
+    .card-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 18px;
+      font-weight: 900;
+      margin-bottom: 16px;
+      color: #444;
+    }
+    .card-title .badge {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: #fff;
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      font-weight: 900;
+      flex-shrink: 0;
+    }
+
+    .step {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      margin-bottom: 18px;
+    }
+    .step:last-child { margin-bottom: 0; }
+
+    .step-icon {
+      font-size: 36px;
+      flex-shrink: 0;
+      line-height: 1;
+    }
+
+    .step-body { flex: 1; }
+    .step-body strong {
+      display: block;
+      font-size: 16px;
+      font-weight: 900;
+      color: #333;
+      margin-bottom: 4px;
+    }
+    .step-body p {
+      font-size: 14px;
+      line-height: 1.7;
+      color: #666;
+    }
+
+    .highlight {
+      display: inline-block;
+      background: #fff3cd;
+      border: 2px solid #ffc107;
+      border-radius: 8px;
+      padding: 2px 8px;
+      font-weight: 900;
+      color: #333;
+      margin: 2px 0;
+    }
+
+    .bubble {
+      background: #f0f4ff;
+      border-left: 4px solid #667eea;
+      border-radius: 0 12px 12px 0;
+      padding: 12px 16px;
+      margin-top: 10px;
+      font-size: 14px;
+      line-height: 1.7;
+      color: #555;
+    }
+
+    .command-list { list-style: none; margin-top: 8px; }
+    .command-list li {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px solid #f0f0f0;
+      font-size: 14px;
+    }
+    .command-list li:last-child { border-bottom: none; }
+    .command-list .cmd {
+      background: #333;
+      color: #fff;
+      border-radius: 8px;
+      padding: 4px 10px;
+      font-size: 14px;
+      font-weight: 900;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .trouble-item {
+      background: #fff5f5;
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 12px;
+    }
+    .trouble-item:last-child { margin-bottom: 0; }
+    .trouble-q {
+      font-size: 14px;
+      font-weight: 900;
+      color: #e03030;
+      margin-bottom: 6px;
+    }
+    .trouble-a {
+      font-size: 13px;
+      line-height: 1.7;
+      color: #555;
+    }
+
+    .big-text {
+      font-size: 22px;
+      font-weight: 900;
+      text-align: center;
+      color: #667eea;
+      margin: 12px 0 8px;
+    }
+
+    .tag {
+      display: inline-block;
+      background: #e8f0fe;
+      color: #667eea;
+      border-radius: 20px;
+      padding: 3px 12px;
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    footer {
+      text-align: center;
+      color: #aaa;
+      font-size: 11px;
+      margin-top: 32px;
+      padding: 0 20px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <span class="emoji">🤖</span>
+  <h1>RET つかいかた</h1>
+  <p>あいなすとおしゃべりしよう！</p>
+</header>
+
+<div class="container">
+
+  <!-- そもそも何？ -->
+  <div class="card">
+    <div class="card-title">
+      <span>✨</span>
+      <span>RETってなに？</span>
+    </div>
+    <div class="step">
+      <span class="step-icon">🤖</span>
+      <div class="step-body">
+        <strong>あいなすというAIがいるよ</strong>
+        <p>話しかけると、なんでも答えてくれるAIのともだちだよ。声でおしゃべりできるんだ！</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- はじめかた -->
+  <div class="card">
+    <div class="card-title">
+      <span class="badge">1</span>
+      <span>はじめかた</span>
+    </div>
+
+    <div class="step">
+      <span class="step-icon">📸</span>
+      <div class="step-body">
+        <strong>カメラに顔を向ける</strong>
+        <p>アプリを開くと、カメラが起動するよ。<br>自分の顔をカメラに向けてね。</p>
+        <div class="bubble">はじめて使うときは名前を入れてね！次からは自動でわかるよ。</div>
+      </div>
+    </div>
+
+    <div class="step">
+      <span class="step-icon">👋</span>
+      <div class="step-body">
+        <strong>あいさつしてくれる</strong>
+        <p>顔が認識されると、あいなすが名前を呼んであいさつしてくれるよ。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 話しかけかた -->
+  <div class="card">
+    <div class="card-title">
+      <span class="badge">2</span>
+      <span>話しかけかた</span>
+    </div>
+
+    <div class="big-text">🎙️ ボタン を タップ！</div>
+
+    <div class="step">
+      <span class="step-icon">1️⃣</span>
+      <div class="step-body">
+        <strong>右上の丸いボタンを1回おす</strong>
+        <p>ボタンが<span class="highlight">あかく</span>なったら聞いているよ。</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <span class="step-icon">2️⃣</span>
+      <div class="step-body">
+        <strong>話しかける</strong>
+        <p>なんでも話しかけてOK！<br>例：「今日の天気は？」「なぞなぞ出して！」</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <span class="step-icon">3️⃣</span>
+      <div class="step-body">
+        <strong>あいなすが答えてくれる</strong>
+        <p>声と文字で答えてくれるよ。画面の下に文字も出るよ。</p>
+      </div>
+    </div>
+
+    <div class="bubble">
+      ⏹️ 話を止めたいときは、もう一度マイクボタンをタップしてね！
+    </div>
+  </div>
+
+  <!-- 魔法のことば -->
+  <div class="card">
+    <div class="card-title">
+      <span class="badge">3</span>
+      <span>まほうのことば</span>
+    </div>
+    <div class="tag">マイクで話しかけてね</div>
+    <ul class="command-list">
+      <li>
+        <span class="cmd">クリア</span>
+        <span>この説明書を表示するよ</span>
+      </li>
+      <li>
+        <span class="cmd">覚えて</span>
+        <span>大事なことをあいなすに覚えてもらえるよ</span>
+      </li>
+    </ul>
+  </div>
+
+  <!-- ほっておくと -->
+  <div class="card">
+    <div class="card-title">
+      <span>💤</span>
+      <span>ほっておくと…？</span>
+    </div>
+    <div class="step">
+      <span class="step-icon">🚶</span>
+      <div class="step-body">
+        <strong>あいなすが動きだす！</strong>
+        <p>しばらく操作しないと、あいなすがいろんな動きをするよ。<br>話しかけるとすぐに戻ってくるよ。</p>
+      </div>
+    </div>
+    <div class="step">
+      <span class="step-icon">💬</span>
+      <div class="step-body">
+        <strong>自分から話しかけてくれることも</strong>
+        <p>あいなすが「お茶はいかがですか？」など、声をかけてくれることがあるよ。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- こまったとき -->
+  <div class="card">
+    <div class="card-title">
+      <span>🆘</span>
+      <span>こまったとき</span>
+    </div>
+
+    <div class="trouble-item">
+      <div class="trouble-q">❓「もう一度試してください」と出た</div>
+      <div class="trouble-a">マイクボタンをもう一回おしてみてね。</div>
+    </div>
+
+    <div class="trouble-item">
+      <div class="trouble-q">❓ 音が聞こえない</div>
+      <div class="trouble-a">スマホの音量を大きくしてね。マナーモードになっていないか確認してね。</div>
+    </div>
+
+    <div class="trouble-item">
+      <div class="trouble-q">❓ マイクが使えない</div>
+      <div class="trouble-a">ブラウザの「マイクを許可する」をONにしてね。設定から変えられるよ。</div>
+    </div>
+
+    <div class="trouble-item">
+      <div class="trouble-q">❓ 顔が認識されない</div>
+      <div class="trouble-a">明るい場所でカメラに正面の顔を向けてみてね。</div>
+    </div>
+  </div>
+
+  <footer>
+    <p>RET — あいなすといつでもおしゃべりしよう 🤖💬</p>
+  </footer>
+
+</div>
+</body>
+</html>

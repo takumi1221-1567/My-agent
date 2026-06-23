@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="AINAS">
+  <meta name="theme-color" content="#1a1a1a">
+  <title>AINAS</title>
+  <link rel="manifest" href="manifest.json?v=2">
+  <!-- アプリアイコン -->
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png?v=1">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=1">
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png?v=1">
+  <link rel="stylesheet" href="css/style.css?v=3">
+</head>
+<body>
+
+  <!-- Face Auth Screen -->
+  <div id="face-screen">
+    <div id="face-container">
+      <video id="face-video" playsinline autoplay muted></video>
+      <canvas id="face-canvas"></canvas>
+      <div id="face-frame">
+        <div class="face-corner tl"></div>
+        <div class="face-corner tr"></div>
+        <div class="face-corner bl"></div>
+        <div class="face-corner br"></div>
+      </div>
+      <div id="face-status">カメラを起動しています...</div>
+      <div id="face-name-form" class="hidden">
+        <p id="face-form-hint">お名前とパスワードを入力してください。</p>
+        <input id="face-name-input" type="text" placeholder="お名前" maxlength="20" autocomplete="username">
+        <input id="face-pass-input" type="password" placeholder="パスワード" maxlength="32" autocomplete="current-password">
+        <button id="face-name-btn">認証</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Setup screen -->
+  <div id="setup-screen" class="hidden"></div>
+
+  <!-- Main app -->
+  <div id="app" class="hidden">
+    <div id="video-stage"></div>
+
+    <!-- Mic button (top-right) -->
+    <button id="mic-btn" aria-label="音声入力">
+      <div class="mic-ring mic-ring-outer"></div>
+      <div class="mic-ring mic-ring-inner"></div>
+      <div class="mic-icon">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="9" y="2" width="6" height="11" rx="3" fill="currentColor"/>
+          <path d="M5 11C5 14.866 8.13401 18 12 18C15.866 18 19 14.866 19 11" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <line x1="12" y1="18" x2="12" y2="22" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <line x1="9" y1="22" x2="15" y2="22" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="mic-glow"></div>
+    </button>
+
+    <!-- Status bar -->
+    <div id="status-bar">
+      <div class="status-line"></div>
+      <span id="status-text">タップして話しかける</span>
+      <div class="status-line"></div>
+    </div>
+
+    <!-- Message display -->
+    <div id="message-box" class="hidden">
+      <div class="message-corner tl"></div>
+      <div class="message-corner tr"></div>
+      <div class="message-corner bl"></div>
+      <div class="message-corner br"></div>
+      <div id="message-text"></div>
+    </div>
+
+    <!-- Manual overlay -->
+    <div id="manual-overlay" class="hidden">
+      <div class="manual-container">
+        <div class="manual-header">
+          <div class="manual-title">RET 取扱説明書</div>
+          <button id="close-manual" aria-label="閉じる">✕</button>
+        </div>
+        <div class="manual-content" id="manual-content"></div>
+      </div>
+    </div>
+
+    <!-- Loading indicator -->
+    <div id="loading-screen">
+      <div class="loading-text">LOADING...</div>
+      <div class="loading-bar"><div id="loading-progress"></div></div>
+    </div>
+  </div>
+
+  <div id="ver" style="position:fixed;bottom:4px;right:6px;font-size:9px;opacity:.25;color:#fff;z-index:9999;pointer-events:none">v48</div>
+  <script>
+    // iOS PWAキャッシュ強制パージ（古いService Workerを登録解除）
+    navigator.serviceWorker?.getRegistrations().then(regs =>
+      regs.forEach(r => r.unregister())
+    );
+  </script>
+  <script type="module" src="js/app.js?v=48"></script>
+</body>
+</html>

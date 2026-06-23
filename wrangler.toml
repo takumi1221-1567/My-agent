@@ -1,0 +1,15 @@
+name = "my-agent"
+pages_build_output_dir = "public"
+
+# 自分のCloudflareリソースIDに置き換えてください（wrangler kv:namespace create / d1 create で取得）
+[[kv_namespaces]]
+binding = "RET_MEMORY"        # コードが参照する論理名（変更時は functions/ も合わせる）
+id = "<your-kv-namespace-id>"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "my-agent-vault"
+database_id = "<your-d1-database-id>"
+
+[ai]
+binding = "AI"

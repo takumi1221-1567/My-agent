@@ -1,0 +1,14 @@
+/
+  Cache-Control: no-store, no-cache, must-revalidate
+
+/index.html
+  Cache-Control: no-store, no-cache, must-revalidate
+
+/videos/*.mov
+  Content-Type: video/quicktime
+
+/videos/*.MP4
+  Content-Type: video/mp4
+
+/videos/*.mp4
+  Content-Type: video/mp4

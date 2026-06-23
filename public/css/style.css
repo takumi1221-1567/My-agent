@@ -1,0 +1,448 @@
+/* ===========================
+   Reset & CSS Variables
+   =========================== */
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --accent:  #333333;
+  --muted:   #888888;
+  --light:   #f5f5f5;
+  --white:   #ffffff;
+  --glass:   rgba(255, 255, 255, 0.85);
+  --border:  rgba(0, 0, 0, 0.12);
+
+  --red:     #e03030;
+  --blue:    #1a73e8;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--white);
+  font-family: 'Helvetica Neue', 'Hiragino Sans', Arial, sans-serif;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ===========================
+   Face Auth Screen
+   =========================== */
+#face-screen {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#face-screen.hidden { display: none; }
+
+#face-container {
+  position: relative;
+  width: min(360px, 90vw);
+  aspect-ratio: 3/4;
+}
+
+#face-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 16px;
+  transform: scaleX(-1); /* 鏡像 */
+}
+
+#face-canvas {
+  display: none;
+}
+
+#face-frame {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.face-corner {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  border-color: #fff;
+  border-style: solid;
+  opacity: 0.9;
+}
+.face-corner.tl { top: 12px;  left: 12px;  border-width: 3px 0 0 3px; border-radius: 4px 0 0 0; }
+.face-corner.tr { top: 12px;  right: 12px; border-width: 3px 3px 0 0; border-radius: 0 4px 0 0; }
+.face-corner.bl { bottom: 12px; left: 12px;  border-width: 0 0 3px 3px; border-radius: 0 0 0 4px; }
+.face-corner.br { bottom: 12px; right: 12px; border-width: 0 3px 3px 0; border-radius: 0 0 4px 0; }
+
+#face-status {
+  position: absolute;
+  bottom: 20px;
+  left: 0; right: 0;
+  text-align: center;
+  color: #fff;
+  font-size: 14px;
+  letter-spacing: 1px;
+  padding: 8px 16px;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+}
+
+#face-name-form {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 32px 24px;
+}
+#face-name-form.hidden { display: none; }
+
+#face-name-form p {
+  color: #fff;
+  font-size: 15px;
+  text-align: center;
+  line-height: 1.6;
+}
+
+#face-name-input,
+#face-pass-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 8px;
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+  font-size: 16px;
+  text-align: center;
+  outline: none;
+}
+#face-name-input::placeholder,
+#face-pass-input::placeholder { color: rgba(255,255,255,0.4); }
+#face-name-input:focus,
+#face-pass-input:focus { border-color: rgba(255,255,255,0.7); }
+
+#face-name-btn {
+  width: 100%;
+  padding: 13px;
+  background: #fff;
+  color: #111;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+#face-name-btn:active { opacity: 0.8; }
+
+/* ===========================
+   Setup Screen
+   =========================== */
+#setup-screen {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--white);
+  z-index: 200;
+}
+#setup-screen.hidden { display: none; }
+
+/* ===========================
+   Main App
+   =========================== */
+#app {
+  position: fixed;
+  inset: 0;
+}
+#app.hidden { display: none; }
+
+#video-stage {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  background: #000;
+  overflow: hidden;
+}
+
+/* ===========================
+   Loading Screen
+   =========================== */
+#loading-screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  z-index: 10;
+  pointer-events: none;
+  background: var(--white);
+  transition: opacity 0.8s;
+}
+#loading-screen.done { opacity: 0; }
+
+.loading-text {
+  font-size: 11px;
+  letter-spacing: 4px;
+  color: var(--muted);
+  animation: blink 1s step-end infinite;
+}
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.3; }
+}
+
+.loading-bar {
+  width: 160px;
+  height: 2px;
+  background: rgba(0,0,0,0.08);
+  border-radius: 2px;
+  overflow: hidden;
+}
+#loading-progress {
+  height: 100%;
+  width: 0%;
+  background: var(--accent);
+  transition: width 0.3s ease;
+}
+
+/* ===========================
+   Mic Button
+   =========================== */
+#mic-btn {
+  position: fixed;
+  top: max(24px, env(safe-area-inset-top, 24px));
+  right: 24px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--glass);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  -webkit-tap-highlight-color: transparent;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+  transition: transform 0.15s;
+}
+#mic-btn:active { transform: scale(0.92); }
+
+.mic-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  pointer-events: none;
+  animation: ring-idle 2.5s ease-in-out infinite;
+}
+.mic-ring-inner { width: 56px; height: 56px; }
+.mic-ring-outer {
+  width: 74px;
+  height: 74px;
+  animation-delay: 0.6s;
+  border-color: rgba(0,0,0,0.06);
+}
+@keyframes ring-idle {
+  0%, 100% { transform: scale(1);    opacity: 0.6; }
+  50%       { transform: scale(1.04); opacity: 1;   }
+}
+
+.mic-icon {
+  width: 22px;
+  height: 22px;
+  color: var(--accent);
+  position: relative;
+  z-index: 1;
+  transition: color 0.3s;
+}
+.mic-glow { display: none; }
+
+/* Listening state */
+#mic-btn.listening .mic-ring-inner {
+  animation: ring-active 0.6s ease-in-out infinite;
+  border-color: rgba(224, 48, 48, 0.5);
+}
+#mic-btn.listening .mic-ring-outer {
+  border-color: rgba(224, 48, 48, 0.2);
+}
+#mic-btn.listening .mic-icon { color: var(--red); }
+
+@keyframes ring-active {
+  0%, 100% { transform: scale(1);    opacity: 1; }
+  50%       { transform: scale(1.12); opacity: 0.8; }
+}
+
+/* Processing state */
+#mic-btn.processing .mic-ring-inner {
+  animation: ring-spin 1.2s linear infinite;
+  border-color: rgba(26, 115, 232, 0.5);
+  border-top-color: var(--blue);
+}
+#mic-btn.processing .mic-ring-outer { opacity: 0.2; }
+#mic-btn.processing .mic-icon { color: var(--blue); }
+
+@keyframes ring-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* ===========================
+   Status Bar
+   =========================== */
+#status-bar {
+  position: fixed;
+  bottom: max(28px, env(safe-area-inset-bottom, 28px));
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  z-index: 50;
+  pointer-events: none;
+}
+
+.status-line {
+  width: 20px;
+  height: 1px;
+  background: var(--border);
+}
+
+#status-text {
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--muted);
+  transition: color 0.3s;
+}
+
+/* ===========================
+   Message Box
+   =========================== */
+#message-box {
+  position: fixed;
+  bottom: max(72px, env(safe-area-inset-bottom, 72px));
+  left: 20px;
+  right: 20px;
+  background: var(--glass);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 18px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  z-index: 50;
+  max-height: 180px;
+  overflow-y: auto;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  animation: msg-in 0.3s ease;
+}
+#message-box.hidden { display: none; }
+
+@keyframes msg-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.message-corner { display: none; }
+
+#message-text {
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--accent);
+  word-break: break-word;
+}
+
+/* ===========================
+   Manual Overlay
+   =========================== */
+#manual-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.92);
+  z-index: 150;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  animation: fade-in 0.3s ease;
+}
+#manual-overlay.hidden { display: none; }
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.manual-container {
+  width: min(400px, 92vw);
+  max-height: 82vh;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+}
+
+.manual-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+.manual-title {
+  font-size: 12px;
+  letter-spacing: 2px;
+  color: var(--accent);
+  font-weight: 600;
+}
+.manual-header button {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 4px 8px;
+  transition: color 0.2s;
+}
+.manual-header button:hover { color: var(--accent); }
+
+.manual-content {
+  padding: 24px 20px;
+  overflow-y: auto;
+  color: var(--accent);
+  font-size: 13px;
+  line-height: 1.85;
+  -webkit-overflow-scrolling: touch;
+}
+.manual-content h3 {
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  color: var(--accent);
+  margin: 20px 0 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+  text-transform: uppercase;
+}
+.manual-content h3:first-child { margin-top: 0; }
+.manual-content p  { margin-bottom: 10px; color: #444; }
+.manual-content strong { color: var(--accent); }

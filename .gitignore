@@ -1,0 +1,18 @@
+node_modules/
+.env
+.env.local
+.wrangler/
+dist/
+.DS_Store
+*.pptx
+
+# Model files — legacy model.glb excluded; optimized_hero.glb is tracked for CI/CD.
+public/models/model.glb
+public/models/*.glb
+public/models/*.vrm
+!public/models/.gitkeep
+!public/models/optimized_hero.glb
+!public/models/city.glb
+
+# Local agent/editor settings
+.claude/
