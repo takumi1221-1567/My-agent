@@ -17,6 +17,7 @@ const MSG_HIDE_MS      = 7_000;
 const CLEAR_TRIGGERS   = ['クリア', 'くりあ', '消去', 'クリアー'];
 const OUTING_TRIGGERS  = ['外出', 'がいしゅつ', 'そとで', '出かけ', 'でかけ'];
 const RETURN_TRIGGERS  = ['もういいよ', 'もういい', '帰宅', 'きたく', '戻って'];
+const MEMORY_TRIGGERS  = ['覚えて', 'おぼえて', '記憶して'];
 
 
 // ── PHASE E: 共闘／単独シーケンス（「行くぞ」）──
@@ -138,8 +139,8 @@ const MANUAL_HTML = `
 声と文字で答えてくれるよ。止めたいときはもう一度ボタンをおしてね。</p>
 
 <h3>✨ まほうのことば</h3>
-<p><strong>「クリア」</strong> と言う → この説明書が出るよ
-</p>
+<p><strong>「クリア」</strong> と言う → この説明書が出るよ<br>
+<strong>「覚えて ◯◯」</strong> と言う → 大事なことを覚えてもらえるよ</p>
 
 <h3>💤 ほっておくと…</h3>
 <p>しばらく操作しないと、執事が動きだすよ。話しかけるとすぐ戻ってくるよ！</p>
@@ -361,6 +362,10 @@ class MyAgentApp {
       return;
     }
 
+    if (_match(MEMORY_TRIGGERS)) {
+      await this._saveMemory(text);
+      return;
+    }
 
     this._showMessage(`あなた: ${text}`);
     this.scene.setState(STATE.THINKING);
@@ -870,6 +875,50 @@ class MyAgentApp {
   _hideManual() {
     document.getElementById('manual-overlay').classList.add('hidden');
     this._resetWanderTimer();
+  }
+
+  // ── 記憶（「覚えて」で確定事実を保存）──────────────────────
+  async _saveMemory(text) {
+    this.scene.setState(STATE.THINKING);
+    this._setStatus('覚えています...');
+    const keyword = text.replace(/覚えて|おぼえて|記憶して/g, '').trim();
+    try {
+      await fetch('/api/memory', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ keyword, context: '' }),
+      });
+      await this._loadMemories();
+      const reply = 'かしこまりました。覚えておきます。';
+      this._showMessage(`執事: ${reply}`);
+      this.scene.setState(STATE.TALKING);
+      this._micState('idle');
+      this.voice.speak(reply, {
+        onEnd: () => {
+          this.busy = false;
+          this.scene.setState(STATE.IDLE);
+          this._setStatus('タップして話しかける');
+          this._resetWanderTimer();
+        },
+      });
+    } catch (e) {
+      console.error('[Memory] save failed:', e);
+      this.busy = false;
+      this.scene.setState(STATE.IDLE);
+      this._setStatus('タップして話しかける');
+      this._micState('idle');
+      this._resetWanderTimer();
+    }
+  }
+
+  async _loadMemories() {
+    try {
+      const res = await fetch('/api/memory');
+      if (!res.ok) return;
+      const { memories } = await res.json();
+      this._memories = memories || [];
+      console.log(`[Memory] ${this._memories.length} 件`);
+    } catch { this._memories = []; }
   }
 
 }

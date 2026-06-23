@@ -9,5 +9,10 @@ binding = "DB"
 database_name = "my-agent-vault"
 database_id = "<your-d1-database-id>"
 
+# 「覚えて」で保存する確定記憶(A)用の KV（wrangler kv:namespace create で作成し id を設定）
+[[kv_namespaces]]
+binding = "MEMORY"
+id = "<your-kv-namespace-id>"
+
 # シークレット（wrangler pages secret put で設定）:
 #   GEMINI_API_KEY … AI Studio の Gemini APIキー

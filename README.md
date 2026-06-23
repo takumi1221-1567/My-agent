@@ -16,11 +16,13 @@ ambient animations when you're quiet.
 - 🧠 **Knowledge‑grounded conversation (the core)** — tap the mic, speak; the butler answers with **Gemini**,
   grounded in **your Obsidian notes** via RAG (a Cloudflare **D1** mirror of the vault is searched and injected
   as the butler's "memory"), while a talking video plays. Falls back to plain chat if no D1 is configured.
+- 📝 **"Remember this"** — say 「覚えて ◯◯」 to store a confirmed fact (Cloudflare **KV**); it's injected as
+  the butler's confirmed‑memory **(A)** on later turns (alongside the Obsidian RAG **(B)**), so it answers from it.
 - 🚗 **Outing sequence** — say an outing trigger; a car/drive video sequence plays and waits, then returns.
 - 😌 **Idling** — when idle, it cycles ambient "waiting" clips (reading, stretching, looking bored…).
 - 🎬 **Video presentation** — every state is a short clip cross‑faded with no black frames.
 
-Web search, the "remember this" write feature, calendar, face auth, etc. are intentionally **out of scope** —
+Web search, calendar, face auth, etc. are intentionally **out of scope** —
 add what you need with [docs/ADDING_FEATURES.md](docs/ADDING_FEATURES.md).
 
 ---

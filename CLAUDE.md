@@ -8,7 +8,7 @@ can provide.
 Read this first, then `README.md`, `docs/TECHNICAL.md` (how the presentation works), `docs/MEDIA_PROMPTS.md`, and `docs/ADDING_FEATURES.md`.
 
 ## What this agent is (scope)
-Exactly four capabilities — keep it minimal:
+The core capabilities — keep it minimal:
 1. **Knowledge‑grounded conversation (the core)** — tap the mic, speak; the butler answers with **Gemini**,
    grounded in the user's **Obsidian notes via RAG** (search a Cloudflare **D1** mirror's `vault_chunks` table,
    inject the hits as 参考情報 into the system prompt), with a talking video. **This Gemini + Obsidian RAG is
@@ -17,8 +17,12 @@ Exactly four capabilities — keep it minimal:
 3. **Idling** — when idle, it cycles ambient "waiting" videos (reading, stretching, looking bored…).
 4. **Video presentation** — all states are short looping/transition videos cross‑faded with no black frames.
 
-Anything else (web search, the "remember this" write feature, calendar, face auth, medical‑interview, drawing,
-TRPG) is intentionally **out of scope** for this template. If asked to add one, follow `docs/ADDING_FEATURES.md`.
+5. **"Remember this" memory (A)** — say 「覚えて ◯◯」 → `app.js` POSTs to `/api/memory` (KV `MEMORY`, optional
+   D1 `memories`); `chat.js` reads recent memories from KV and injects them as confirmed‑memory **(A)** in the
+   system prompt (alongside the Obsidian RAG **(B)**). Keep this — it pairs with the RAG.
+
+Anything else (web search, calendar, face auth, medical‑interview, drawing, TRPG) is intentionally
+**out of scope** for this template. If asked to add one, follow `docs/ADDING_FEATURES.md`.
 
 ## Architecture
 - `public/` — the PWA: `index.html`, `js/app.js` (state machine + sequences), `js/scene.js` (video cross‑fade),
