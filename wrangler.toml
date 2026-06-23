@@ -1,6 +1,13 @@
 name = "my-agent"
 pages_build_output_dir = "public"
 
-# 会話専用（最小構成）。/api/chat は Gemini API のみを使うため D1/KV/AI バインドは不要。
+# このプロジェクトの核は Gemini ＋ Obsidian RAG。
+# /api/chat は D1(Obsidianミラー)を検索して「参考情報」を Gemini に注入する。
+# 自分の D1（vault_chunks テーブルを持つ Obsidian ミラー）の id に置き換えてください。
+[[d1_databases]]
+binding = "DB"
+database_name = "my-agent-vault"
+database_id = "<your-d1-database-id>"
+
 # シークレット（wrangler pages secret put で設定）:
 #   GEMINI_API_KEY … AI Studio の Gemini APIキー

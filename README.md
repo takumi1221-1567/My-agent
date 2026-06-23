@@ -1,24 +1,27 @@
 # My agent — a voice AI butler (template)
 
-A phone‑first **voice‑interactive AI butler** with **lifelike character‑video presentation**, built as a
-PWA on Cloudflare Pages. Tap, speak, and a video character answers — goes out for a drive on command, and
-idles with ambient animations when you're quiet.
+A phone‑first **voice‑interactive AI butler** whose core is **Gemini + Obsidian RAG** — it answers grounded in
+**your own notes** — wrapped in **lifelike character‑video presentation**, built as a PWA on Cloudflare Pages.
+Tap, speak, and a video character answers from your knowledge — goes out for a drive on command, and idles with
+ambient animations when you're quiet.
 
-> **Portfolio template.** It does four things on purpose — conversation, an outing sequence, idling, and
-> video presentation — so it stays small and anyone can reproduce (and extend) it.
+> **Portfolio template.** Focused on purpose — **knowledge‑grounded conversation (Gemini + Obsidian RAG)**, an
+> outing sequence, idling, and video presentation — so it stays small and anyone can reproduce (and extend) it.
 > Companion project: [AI chat team in your Discord](https://github.com/takumi1221-1567/AI-chat-team-in-your-Discord).
 
 ---
 
 ## What it does
 
-- 🎙 **Conversation** — tap the mic, speak; the butler replies (Gemini) while a talking video plays.
+- 🧠 **Knowledge‑grounded conversation (the core)** — tap the mic, speak; the butler answers with **Gemini**,
+  grounded in **your Obsidian notes** via RAG (a Cloudflare **D1** mirror of the vault is searched and injected
+  as the butler's "memory"), while a talking video plays. Falls back to plain chat if no D1 is configured.
 - 🚗 **Outing sequence** — say an outing trigger; a car/drive video sequence plays and waits, then returns.
 - 😌 **Idling** — when idle, it cycles ambient "waiting" clips (reading, stretching, looking bored…).
 - 🎬 **Video presentation** — every state is a short clip cross‑faded with no black frames.
 
-Search, memory/RAG, calendar, face auth, etc. are intentionally **out of scope** — add what you need with
-[docs/ADDING_FEATURES.md](docs/ADDING_FEATURES.md).
+Web search, the "remember this" write feature, calendar, face auth, etc. are intentionally **out of scope** —
+add what you need with [docs/ADDING_FEATURES.md](docs/ADDING_FEATURES.md).
 
 ---
 
@@ -29,8 +32,8 @@ Giving an AI a "body" usually means a 3D rig, Live2D, or a per-frame renderer. T
 - **Presence from short video clips, cross‑faded — no rig, no GPU, no black frames.** Two stacked `<video>`
   elements swap on `canplay` with escalating fallbacks, so it never flashes black and never stalls (even on an
   unsupported codec). The mechanics are in [docs/TECHNICAL.md](docs/TECHNICAL.md).
-- **Serverless & phone‑first.** A static PWA + one Cloudflare Function (`{message}→{reply}`). No server, no
-  database, fits the free tier; the API key stays server‑side.
+- **Serverless & phone‑first.** A static PWA + one Cloudflare Function (`{message}→{reply}`). No server to run;
+  the RAG uses Cloudflare **D1** (an Obsidian mirror), fits the free tier, and the API key stays server‑side.
 - **One base image → a whole character.** Every state clip is generated from a single image with a strict
   "change only the motion" constraint, so all clips look like the same character ([docs/MEDIA_PROMPTS.md](docs/MEDIA_PROMPTS.md)).
 - **Reproducible & extensible.** A build brief for Claude Code ([CLAUDE.md](CLAUDE.md)) and a 5‑piece recipe to
@@ -79,7 +82,9 @@ public/js/app.js   state machine (idle / listening / thinking / talking / outing
    ├─ voice.js     speech recognition + synthesis (ja‑JP)
    └─ POST /api/chat
         ▼
-functions/api/chat.js   →  Gemini API  →  { reply }      (no DB, no KV)
+functions/api/chat.js
+   ├─ search D1 (Obsidian mirror: vault_chunks)  →  inject as 参考情報 (RAG)
+   └─ Gemini API (persona + 参考情報)            →  { reply }
 ```
 
 ---
@@ -107,9 +112,11 @@ Save clips into `public/videos/` with the filenames `app.js` expects.
 
 ## Configuration
 
-- `GEMINI_API_KEY` — required for conversation. `.env` locally, `wrangler pages secret put` in production.
-- `wrangler.toml` / `.github/workflows/deploy.yml` — set your project `name`.
-- No database / KV required.
+- `GEMINI_API_KEY` — required for generation. `.env` locally, `wrangler pages secret put` in production.
+- **Cloudflare D1** (`[[d1_databases]]` in `wrangler.toml`, binding `DB`) — an Obsidian mirror with a
+  `vault_chunks(path, chunk)` table, searched for RAG. Set `database_id` to your own. Without it, chat still
+  works (plain Gemini, no grounding).
+- `wrangler.toml` — set your project `name`. Deploy manually with `wrangler pages deploy` (no CI shipped).
 
 ## License
 

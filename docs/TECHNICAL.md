@@ -74,13 +74,29 @@ Mobile Safari blocks autoplay-with-sound and won't let JS set `volume`. The desi
   mic tap); `play()` failures fall back to muted so the **picture never stops** even if audio is refused.
 - This is why the app boots straight into a tappable scene — the first tap is what unlocks audio.
 
-## 5. Conversation: serverless, stateless, key-safe
+## 5. Conversation: Gemini + Obsidian RAG (the keystone)
 
-`functions/api/chat.js` is the only backend: `POST {message} → {reply}` to the Gemini API. No DB, no KV.
-- The key lives in `env.GEMINI_API_KEY` (a Cloudflare secret) — never in client JS.
-- `thinkingConfig.thinkingBudget = 0` keeps Flash latency low (thinking-on Flash often overruns the client
-  timeout); 429/5xx retry then fall back to a second model; a 25 s server timeout returns an error JSON so the
-  UI recovers instead of hanging.
+`functions/api/chat.js` is the only backend, and it does two things: **retrieve, then generate**.
+
+```js
+// retrieve: search the Obsidian mirror in D1, weight title/path hits ×3
+const rows = await db.prepare(
+  `SELECT path, chunk FROM vault_chunks WHERE chunk LIKE ? OR path LIKE ? LIMIT 200`
+).bind(`%${term}%`, `%${term}%`).all();
+// …score per Japanese keyword (kanji 2-grams + katakana + ASCII + kana→English synonyms), take top 8…
+systemText += `\n\n=== 参考情報（自分の記憶として、出典に触れず自然に使う） ===\n${ctx}\n=== ここまで ===`;
+// generate: Gemini with the persona + injected 参考情報
+```
+
+- **Japanese RAG that actually hits.** `extractKeywords` builds kanji **2-grams**, katakana/ASCII runs, and a
+  kana→English synonym map (e.g. クロード→claude) so queries match notes written in mixed JP/EN; a hit in the
+  **path/title scores ×3** over a body hit. Per term `LIMIT 200` so newly-synced notes aren't starved.
+- **Grounding, not lookup.** The hits are injected as the butler's "memory" (出典に触れず自然に使う); the persona
+  is told to say "存じ上げません" rather than invent facts not in the notes — this is the anti-hallucination contract.
+- **Graceful without D1.** If `env.DB` is unset, `searchD1` returns `[]` and the butler answers as plain Gemini.
+- The key lives in `env.GEMINI_API_KEY` (a Cloudflare secret) — never in client JS. `thinkingBudget = 0` keeps
+  Flash latency low; 429/5xx retry then fall back to a second model; a 25 s timeout returns an error JSON so the
+  UI recovers instead of hanging. D1 is a read-only lookup, so each request is still independent/stateless.
 
 ## 6. The media pipeline (where the clips come from)
 
