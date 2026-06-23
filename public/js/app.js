@@ -106,13 +106,11 @@ const COLONEL_LINES = [
   'アネモネ、クレマチスは汁がつくとかぶれることがある。剪定する時は手袋をした方がいいかもしれんな。',
 ];
 
-// ── メインユーザー認証（松村拓実）──
-// 顔認証の名前入力で以下のいずれかを含む名前なら機能解放。それ以外は拒否。
-const AUTHORIZED_NAMES = ['松村', 'まつむら', 'マツムラ', '拓実', 'たくみ', 'タクミ'];
-const ACCESS_DENIED_MSG = '松村は外出中です。';
-// フォールバック認証の固定パスワード。平文はコードに置かず SHA-256 ハッシュのみ（R-6順守）。
-// 値: 214200（検索シーケンスのパスワードと共通）。
-const FIXED_PW_HASH = 'a902ad8afbcb34418cb8608d0924bd1a2ac20cfd7d37c389eef5a4d256ca5456';
+// ── （任意）メインユーザー認証 ── ※このテンプレートでは認証を使わず会話へ直行します。
+// 認証を有効にするには functions に /api/face を用意し、許可名・固定パスワードハッシュを設定してください。
+const AUTHORIZED_NAMES = ['owner'];          // 許可する名前（例）
+const ACCESS_DENIED_MSG = 'ただいま不在にしております。';
+const FIXED_PW_HASH = '';                    // SHA-256(パスワード) を設定（平文は置かない）
 
 // ── 外出シーケンス動画（外出→ドア→発進→後部座席でループ待機 / 音声ON）──
 const OUTING_SEQUENCE = [
@@ -231,7 +229,7 @@ class RETApp {
     this._butlerTimer  = null;
     this._msgTimer     = null;
     this._outingMode   = false;
-    this._local-aiAbort   = null;
+    this._aiAbort   = null;
 
     // 復帰シーケンス（帰宅/施錠→帰宅）再生中ガード。
     // 音声認識は非継続モードのため result 直後に必ず onend が発火する。
@@ -265,7 +263,9 @@ class RETApp {
     this._searchTalkTimer = null;  // 失敗ループのセリフ発話タイマー
     this._searchLast    = null;    // 直近の検索結果 { q, summary }
 
-    this._startFaceAuth();
+    // 認証ゲートなし：直接アプリ起動（テンプレートは 会話 / 外出 / アイドル / 動画 のみ）
+    document.getElementById('face-screen')?.classList.add('hidden');
+    this._startApp();
   }
 
   // ── 顔認証フロー ──────────────────────────────────────
@@ -335,7 +335,7 @@ class RETApp {
     return canvas.toDataURL('image/jpeg', 0.8);
   }
 
-  // メインユーザー（松村拓実）の名前かどうか判定
+  // メインユーザーの名前かどうか判定
   _isAuthorizedName(name) {
     if (!name) return false;
     const n = name.replace(/[\s　]/g, '');
@@ -346,11 +346,11 @@ class RETApp {
   // 固定パスワード（FIXED_PW_HASH）で照合する。localStorage には名前のみ保存（利便用）。
   // パスワードの平文もハッシュも保存しない（コード内の固定ハッシュのみと突き合わせる）。
   _loadProfile() {
-    try { return JSON.parse(localStorage.getItem('local-ai_profile') || 'null'); }
+    try { return JSON.parse(localStorage.getItem('ai_profile') || 'null'); }
     catch { return null; }
   }
   _saveProfile(p) {
-    try { localStorage.setItem('local-ai_profile', JSON.stringify(p)); } catch { /* ignore */ }
+    try { localStorage.setItem('ai_profile', JSON.stringify(p)); } catch { /* ignore */ }
   }
   async _hashPassword(pw) {
     const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
@@ -405,7 +405,7 @@ class RETApp {
       const pw   = pass ? pass.value : '';
       if (!name) return;
 
-      // メインユーザー（松村拓実）以外は機能解放しない
+      // メインユーザー以外は機能解放しない
       if (!this._isAuthorizedName(name)) { this._denyAccess(); return; }
 
       // パスワード必須
@@ -459,27 +459,15 @@ class RETApp {
       onReady: () => {
         const ls = document.getElementById('loading-screen');
         if (ls) { ls.classList.add('done'); setTimeout(() => ls.remove(), 900); }
-        this.scene.enableSound();   // 認証ボタンのジェスチャー直後に音声解禁を試行
-        this._loadMemories();
-        if (userName) {
-          // 初回のみ「はじめまして」。2回目以降は「おかえりなさいませ」。
-          const firstEver = !localStorage.getItem('local-ai_greeted');
-          const greeting = firstEver
-            ? `はじめまして、${userName}様。私はAI執事と申します。何なりとお申し付けください。`
-            : `おかえりなさいませ、${userName}様。`;
-          try { localStorage.setItem('local-ai_greeted', '1'); } catch { /* ignore */ }
-          setTimeout(() => {
-            this._showMessage(`AI執事: ${greeting}`);
-            this.voice.speak(greeting, { onEnd: () => this._announceSyncStatus() });
-          }, 500);
-          this._setStatus(`${userName}様、ようこそ`);
-        } else {
-          this._setStatus('タップして話しかける');
-          setTimeout(() => this._announceSyncStatus(), 800);
-        }
+        this.scene.enableSound();
+        // 起動の挨拶（会話テンプレート）
+        const greeting = 'はじめまして。私はAI執事と申します。何なりとお申し付けください。';
+        setTimeout(() => {
+          this._showMessage(`AI執事: ${greeting}`);
+          this.voice.speak(greeting);
+        }, 500);
+        this._setStatus('タップして話しかける');
         this._resetWanderTimer();
-        // PHASE G: 起動時にカレンダー予定を読み上げ（挨拶の後）
-        setTimeout(() => this._announceCalendar(), userName ? 7000 : 3500);
       },
     });
 
@@ -596,7 +584,7 @@ class RETApp {
   }
 
   _onListenEnd() {
-    if (this._outingMode || this._goMode || this._searchMode || this._trpgMode || this._drawMode || this._pickMode || this._monshinMode || this._seqLock) return;
+    if (this._outingMode || this._goMode || this._seqLock) return;
     if (this.scene.state === STATE.LISTENING) {
       this.busy = false;
       this.scene.setState(STATE.IDLE);
@@ -608,7 +596,7 @@ class RETApp {
 
   _onVoiceError(err) {
     console.warn('[Voice error]', err);
-    if (this._outingMode || this._goMode || this._searchMode || this._trpgMode || this._drawMode || this._pickMode || this._monshinMode || this._seqLock) return;
+    if (this._outingMode || this._goMode || this._seqLock) return;
     this.busy = false;
     this.scene.setState(STATE.IDLE);
     this._setStatus('もう一度試してください');
@@ -644,49 +632,6 @@ class RETApp {
       return;
     }
 
-    if (this._searchMode) {
-      this._handleSearchSpeech(text, _match);
-      return;
-    }
-
-    if (this._trpgMode) {
-      this._handleTrpgSpeech(text, _match);
-      return;
-    }
-
-    if (this._drawMode) {
-      this._handleDrawSpeech(text, _match);
-      return;
-    }
-
-    if (this._pickMode) {
-      this._handlePickSpeech(text, _match);
-      return;
-    }
-
-    if (this._monshinMode) {
-      this._handleMonshinSpeech(text, _match);
-      return;
-    }
-
-    if (_match(ILLNESS_TRIGGERS)) {
-      this._cancelLocalAI();
-      this._startMonshin(text);
-      return;
-    }
-
-    if (_match(TRPG_START_TRIGGERS)) {
-      this._cancelLocalAI();
-      this._startTrpg(text);
-      return;
-    }
-
-    if (_match(SEARCH_TRIGGERS)) {
-      this._cancelLocalAI();
-      this._startSearch();
-      return;
-    }
-
     if (_match(CLEAR_TRIGGERS)) {
       this._showManual();
       this.busy = false;
@@ -704,34 +649,12 @@ class RETApp {
       return;
     }
 
-    if (_match(INSTALL_TRIGGERS)) {
-      this._cancelLocalAI();
-      this._requestSync();
-      return;
-    }
-
-    if (_match(STATUS_TRIGGERS)) {
-      this._cancelLocalAI();
-      this._showSyncStatus();
-      return;
-    }
-
-    if (_match(DRAW_TRIGGERS)) {
-      this._cancelLocalAI();
-      this._startDraw();
-      return;
-    }
-
     if (_match(GO_TRIGGERS)) {
       this._cancelLocalAI();
       this._startGoPrompt();
       return;
     }
 
-    if (_match(MEMORY_TRIGGERS)) {
-      await this._saveMemory(text);
-      return;
-    }
 
     this._showMessage(`あなた: ${text}`);
     this.scene.setState(STATE.THINKING);
@@ -740,12 +663,11 @@ class RETApp {
     try {
       let reply;
       try {
-        const data = await this._local-aiAsk(text);            // 候補提示対応の問い合わせ
-        if (data.candidates) { this._startPick(data.candidates); return; }
+        const data = await this._aiAsk(text);
         reply = data.reply;
       } catch (e) {
         // 外出/他モードへの遷移によるキャンセルは静かに終了
-        if (this._outingMode || this._goMode || this._searchMode || this._trpgMode || this._drawMode || this._pickMode || this._monshinMode) return;
+        if (this._outingMode || this._goMode) return;
         // タイムアウト/通信失敗で「考え中」のまま固まらないよう、通知して復帰
         this._showMessage('AI執事: 申し訳ございません、うまく応答できませんでした。もう一度お試しください。');
         this.busy = false;
@@ -869,7 +791,7 @@ class RETApp {
 
   // 起動時に「最新の同期は◯月◯日です」とひと言（常設UIは作らない）
   async _announceSyncStatus() {
-    if (this._outingMode || this._goMode || this._searchMode || this._trpgMode || this._drawMode || this._pickMode || this._monshinMode) return;
+    if (this._outingMode || this._goMode) return;
     try {
       const res = await fetch('/api/vault/status');
       if (!res.ok) return;
@@ -889,7 +811,7 @@ class RETApp {
 
   // ── PHASE G: カレンダー予定の読み上げ ──────────────────
   async _announceCalendar() {
-    if (this._outingMode || this._goMode || this._searchMode || this._trpgMode || this._drawMode || this._pickMode || this._monshinMode) return;
+    if (this._outingMode || this._goMode) return;
     let value = '';
     try {
       const res = await fetch('/api/calendar');
@@ -899,7 +821,7 @@ class RETApp {
     // 予定なしはスキップ（G仕様）
     if (!value || value.includes('予定はありません') || value.includes('予定はございません')) return;
     // 話し中・聞き取り中・特殊モードなら後で
-    if (this.busy || this.voice?.isSpeaking || this.voice?.isListening || this._outingMode || this._goMode || this._searchMode || this._trpgMode || this._drawMode || this._pickMode || this._monshinMode) {
+    if (this.busy || this.voice?.isSpeaking || this.voice?.isListening || this._outingMode || this._goMode) {
       setTimeout(() => this._announceCalendar(), 4000);
       return;
     }
@@ -1058,16 +980,16 @@ class RETApp {
   }
 
   // ── 候補提示モード（複数トピックがヒット時）→ 選択 → 絞って説明 ──
-  async _local-aiAsk(text) {
+  async _aiAsk(text) {
     this._cancelLocalAI();
-    this._local-aiAbort = new AbortController();
+    this._aiAbort = new AbortController();
     const timer = setTimeout(() => this._cancelLocalAI(), 30000);
     try {
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: text, disambiguate: true }),
-        signal: this._local-aiAbort.signal,
+        signal: this._aiAbort.signal,
       });
       if (!res.ok) throw new Error(`Chat API ${res.status}`);
       const data = await res.json();
@@ -1076,7 +998,7 @@ class RETApp {
       return { reply: data.reply };
     } finally {
       clearTimeout(timer);
-      this._local-aiAbort = null;
+      this._aiAbort = null;
     }
   }
 
@@ -1129,7 +1051,7 @@ class RETApp {
     this.scene.setState(STATE.THINKING);
     this._setStatus('考えてる...');
     let reply = '';
-    try { reply = await this._local-aiChat(`${title}について教えて`); }   // 具体化→明確な勝者→直接回答
+    try { reply = await this._aiChat(`${title}について教えて`); }   // 具体化→明確な勝者→直接回答
     catch (e) {
       this.busy = false; this.scene.setState(STATE.IDLE); this._setStatus('タップして話しかける');
       this._micState('idle'); this._resetWanderTimer(); return;
@@ -1168,7 +1090,7 @@ class RETApp {
     this._setStatus('考えています...');
     let reply = '';
     try {
-      reply = await this._local-aiChat(text, { mode: 'monshin', history: this._monshinHistory.slice(-16) });
+      reply = await this._aiChat(text, { mode: 'monshin', history: this._monshinHistory.slice(-16) });
     } catch (e) {
       if (!this._monshinMode) return;
       reply = '申し訳ございません、もう一度伺えますか。';
@@ -1270,7 +1192,7 @@ class RETApp {
     const prompt = seed
       ? `絵を描きながらの独り言として、次のメモに少し触れて100文字以内で一言。挨拶・かぎ括弧・絵文字は不要。\n\nメモ: ${seed}`
       : `絵を描きながらの独り言を100文字以内で一言。挨拶・かぎ括弧・絵文字は不要。`;
-    const reply = await this._local-aiChat(prompt);
+    const reply = await this._aiChat(prompt);
     return (reply || '').replace(/[「」]/g, '').slice(0, 110);
   }
 
@@ -1363,7 +1285,7 @@ class RETApp {
         `挨拶・前置き・絵文字・かぎ括弧は不要です。\n\nメモ: ${seed}`
       : `Vaultのナレッジから話題を一つ選び、${tone}、100文字以内の短い独り言を一言だけ言ってください。` +
         `挨拶・前置き・絵文字・かぎ括弧は不要です。`;
-    const reply = await this._local-aiChat(prompt);
+    const reply = await this._aiChat(prompt);
     return (reply || '').replace(/[「」]/g, '').slice(0, 110);
   }
 
@@ -1374,7 +1296,7 @@ class RETApp {
     this._micState('processing');
     this._setStatus('考えています...');
     let reply = '';
-    try { reply = await this._local-aiChat(text); } catch { reply = ''; }
+    try { reply = await this._aiChat(text); } catch { reply = ''; }
     // 応答待ちの間にモード/フェーズが変わっていたら破棄
     if (!this._goMode || this._goPhase !== 'travel') return;
     if (!reply) reply = 'さようでございますか。';
@@ -1691,7 +1613,7 @@ class RETApp {
 
     let reply = '';
     try {
-      reply = await this._local-aiChat(text, { mode: 'trpg', history: this._trpgHistory.slice(-16) });
+      reply = await this._aiChat(text, { mode: 'trpg', history: this._trpgHistory.slice(-16) });
     } catch { reply = ''; }
     if (!this._trpgMode) return;   // 途中で終了されていたら破棄
     if (!reply) reply = '（GMは沈黙している…）もう一度お試しください。';
@@ -1726,7 +1648,7 @@ class RETApp {
         const prompt =
           `次のTRPGセッションのログを、日報として日本語で簡潔にまとめてください（200字程度）。` +
           `起きた出来事・登場NPC・結末を中心に。前置き不要。\n\n${log.join('\n')}`;
-        summary = await this._local-aiChat(prompt, { mode: 'conversation' });
+        summary = await this._aiChat(prompt, { mode: 'conversation' });
       } catch { summary = ''; }
     }
     const date = new Date().toISOString().slice(0, 10);
@@ -1759,12 +1681,12 @@ class RETApp {
   // ── ローカルAI RAG チャット ────────────────────────────────
 
   _cancelLocalAI() {
-    if (this._local-aiAbort) { this._local-aiAbort.abort(); this._local-aiAbort = null; }
+    if (this._aiAbort) { this._aiAbort.abort(); this._aiAbort = null; }
   }
 
-  async _local-aiChat(text, opts = {}) {
+  async _aiChat(text, opts = {}) {
     this._cancelLocalAI();
-    this._local-aiAbort = new AbortController();
+    this._aiAbort = new AbortController();
     // CF /api/chat（Gemini flash-lite主役・503時は別モデルへリトライ）。余裕を見て30s。
     const timer = setTimeout(() => this._cancelLocalAI(), 30000);
     try {
@@ -1775,7 +1697,7 @@ class RETApp {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify(body),
-        signal:  this._local-aiAbort.signal,
+        signal:  this._aiAbort.signal,
       });
       if (!res.ok) throw new Error(`Chat API ${res.status}`);
       const { reply } = await res.json();
@@ -1783,7 +1705,7 @@ class RETApp {
       return reply;
     } finally {
       clearTimeout(timer);
-      this._local-aiAbort = null;
+      this._aiAbort = null;
     }
   }
 
@@ -1851,7 +1773,7 @@ class RETApp {
   /** 執事の自発的発話（PHASE F: Obsidianナレッジ参照の話しかけ。失敗時は固定フレーズ） */
   async _butlerSpeak() {
     const idleNow = () =>
-      !(this.busy || this.voice?.isSpeaking || this.voice?.isListening || this._outingMode || this._goMode || this._searchMode || this._trpgMode || this._drawMode || this._pickMode || this._monshinMode);
+      !(this.busy || this.voice?.isSpeaking || this.voice?.isListening || this._outingMode || this._goMode);
     if (!idleNow()) { this._resetButlerTimer(); return; }
 
     // F-1/F-2: Vaultナレッジから話題を選んで自然な話しかけを生成
